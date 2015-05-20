@@ -3,57 +3,76 @@ class Sandbox
   IO = Object.remove_const :IO
   LocalRpc = Object.remove_const :LocalRpc
 
-  attr_reader :input, :output, :server, :untrusted, :trusted
-
   def initialize
+    clear
     @input = IO.new(0)  #STDIN
     @output = IO.new(1) #STDOUT
-    @server = LocalRpc::Server.new(input: @input, output: @output, handler: self)
-    discard
-    loop do
-      IO.select [@input]
-      server.handle_request # responses to clients are dealt with synchronously so we don't need to
-                            # handle them here, too.
-    end
+    @server = LocalRpc::Server.new(input: @input, output: @output, handler: Handler.new(self))
+    @clients = {}
+    @server.listen
   end
 
-  def discard
+  attr_reader :untrusted
+
+  def clear
     @untrusted = Untrusted.new
     @trusted = Trusted.new(sandbox)
     true
   end
 
-  def load_untrusted(code)
+  def eval_untrusted(code)
     @untrusted.instance_eval(code)
   end
 
-  def load_trusted(code)
+  def eval_trusted(code)
     @trusted.instance_eval(code)
   end
 
-  class Untrusted < Class; end
+  def add_handler(object:, name:)
+    @server.add_handler(name: name, handler: object)
+  end
 
-  class Trusted < Class
-    def initialize(sandbox)
-      @sandbox = sandbox
-    end
+  def client_for(handler_name:)
+    @clients[handler_name] ||= LocalRpc::Client.new(input: @input, output: @output,
+      handler_name: handler_name)
+  end
+end
 
-    def untrusted_code
-      @sandbox.untrusted
-    end
+class Sandbox::Handler
+  def initialize(sandbox)
+    @sandbox = sandbox
+  end
 
-    def act_as_rpc_handler(object:, handler_name:)
-      @sandbox.server.add_handler(name: handler_name, handler: object)
-    end
+  def clear
+    @sandbox.clear
+  end
 
-    def act_as_rpc_client(object:, handler_name:)
-      client = LocalRpc::Client.new(input: @sandbox.input, output: @sandbox.output, handler_name: handler_name)
-      object.instance_eval do
-        define_method(handler_name) do
-          client
-        end
-      end
-    end
+  def eval_untrusted(code)
+    @sandbox.eval_untrusted(code)
+  end
+
+  def eval_trusted(code)
+    @sandbox.eval_trusted(code)
+  end
+end
+
+class Sandbox::Untrusted < Module; end
+
+class Sandbox::Trusted < Module
+  def initialize(sandbox)
+    @sandbox = sandbox
+  end
+
+  def untrusted_code
+    @sandbox.untrusted
+  end
+
+  def export(object:, as:)
+    @sandbox.add_handler(name: as, handler: object)
+  end
+
+  def import(name:)
+    @sandbox.client_for(handler_name: name)
   end
 end
 

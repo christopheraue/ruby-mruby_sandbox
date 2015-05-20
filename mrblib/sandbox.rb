@@ -9,7 +9,7 @@ class Sandbox
     @output = IO.new(1) #STDOUT
     @server = PipeRpc::Server.new(input: @input, output: @output, handler: Handler.new(self))
     @clients = {}
-    @server.listen
+    @server.listen #blocks and loops
   end
 
   attr_reader :untrusted
@@ -20,11 +20,11 @@ class Sandbox
     true
   end
 
-  def eval_untrusted(code)
+  def load_untrusted(code)
     @untrusted.instance_eval(code)
   end
 
-  def eval_trusted(code)
+  def load_trusted(code)
     @trusted.instance_eval(code)
   end
 
@@ -48,12 +48,12 @@ class Sandbox::Handler
     @sandbox.clear
   end
 
-  def eval_untrusted(code)
-    @sandbox.eval_untrusted(code)
+  def load_untrusted(code)
+    @sandbox.load_untrusted(code)
   end
 
-  def eval_trusted(code)
-    @sandbox.eval_trusted(code)
+  def load_trusted(code)
+    @sandbox.load_trusted(code)
   end
 end
 
@@ -72,8 +72,8 @@ class Sandbox::Trusted < Module
     @sandbox.add_handler(name: args.fetch(:as), handler: args.fetch(:object))
   end
 
-  def import(args)
-    @sandbox.client_for(handler_name: args.fetch(:name))
+  def import(name)
+    @sandbox.client_for(handler_name: name)
   end
 end
 

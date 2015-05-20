@@ -18,6 +18,6 @@ DESC
   spec.authors = ['Christopher Aue']
   spec.homepage = 'https://github.com/christopheraue/mruby-sandbox'
 
-  spec.add_dependency 'mruby-local_io', '~> 0.1'
-  spec.add_dependency 'mruby-local_rpc', '~> 0.1'
+  spec.add_dependency 'mruby-restricted_io', '~> 0.1'
+  spec.add_dependency 'mruby-pipe_rpc', '~> 0.1'
 end

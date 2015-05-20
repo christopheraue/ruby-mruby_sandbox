@@ -1,13 +1,13 @@
 class Sandbox
   # Remove constants from global namespace so no one can mess around with it.
   IO = Object.remove_const :IO
-  LocalRpc = Object.remove_const :LocalRpc
+  PipeRpc = Object.remove_const :PipeRpc
 
   def initialize
     clear
     @input = IO.new(0)  #STDIN
     @output = IO.new(1) #STDOUT
-    @server = LocalRpc::Server.new(input: @input, output: @output, handler: Handler.new(self))
+    @server = PipeRpc::Server.new(input: @input, output: @output, handler: Handler.new(self))
     @clients = {}
     @server.listen
   end
@@ -33,7 +33,7 @@ class Sandbox
   end
 
   def client_for(handler_name:)
-    @clients[handler_name] ||= LocalRpc::Client.new(input: @input, output: @output,
+    @clients[handler_name] ||= PipeRpc::Client.new(input: @input, output: @output,
       handler_name: handler_name)
   end
 end

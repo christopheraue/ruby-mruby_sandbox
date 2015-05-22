@@ -1,12 +1,22 @@
 #!/usr/bin/env ruby
 
-repository, dir = 'https://github.com/mruby/mruby.git', 'tmp/mruby'
-build_args = ARGV
+require 'fileutils'
 
-Dir.mkdir 'tmp'  unless File.exist?('tmp')
+repository = 'https://github.com/mruby/mruby.git'
+dir = File.expand_path(File.dirname(__FILE__))
+mruby_dir = File.expand_path('tmp/mruby')
+
+Dir.mkdir 'tmp' unless File.exist?('tmp')
 unless File.exist?(dir)
   system "git clone #{repository} #{dir}"
 end
 
-system %Q[cd #{dir}; MRUBY_CONFIG=#{File.join(File.expand_path(File.dirname(__FILE__)), 'build_config.rb')} ruby minirake #{build_args.join(' ')}]
-system "mv #{dir}/build/host/bin/mruby ./mruby-sandbox"
+Dir.chdir mruby_dir
+build_config = File.join(dir, 'build_config.rb')
+build_args = ARGV
+system "MRUBY_CONFIG=#{build_config} ./minirake #{build_args.join(' ')}"
+
+Dir.chdir dir
+Dir.mkdir 'bin' unless File.exist?('bin')
+FileUtils.mv(File.join(mruby_dir, '/build/host/bin/mruby'), File.join(dir, '/bin/mruby-sandbox'))
+FileUtils.mv(File.join(mruby_dir, '/build/irb/bin/mirb'), File.join(dir, '/bin/mirb'))

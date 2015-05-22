@@ -1,4 +1,7 @@
 MRuby::GemBox.new do |conf|
+  # Use standard Kernel#sprintf method
+  conf.gem :core => "mruby-sprintf"
+
   # Use standard Math module
   conf.gem :core => "mruby-math"
 
@@ -55,4 +58,7 @@ MRuby::GemBox.new do |conf|
 
   # Use extensional Kernel module
   conf.gem :core => "mruby-kernel-ext"
+
+  # Use eval module
+  conf.gem :core => "mruby-eval"
 end

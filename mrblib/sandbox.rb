@@ -5,8 +5,8 @@ class Sandbox
 
   def initialize
     clear
-    @input = IO.new(0)  #STDIN
-    @output = IO.new(1) #STDOUT
+    @input = IO.new(0, 'r')  #STDIN
+    @output = IO.new(1, 'w') #STDOUT
     @server = PipeRpc::Server.new(input: @input, output: @output, handler: Handler.new(self))
     @clients = {}
     @server.listen #blocks and loops
@@ -28,11 +28,11 @@ class Sandbox
     @trusted.instance_eval(code)
   end
 
-  def add_handler(args)
+  def add_handler(args = {})
     @server.add_handler(name: args.fetch(:name), handler: args.fetch(:object))
   end
 
-  def client_for(args)
+  def client_for(args = {})
     handler_name = args.fetch(:handler_name)
     @clients[handler_name] ||= PipeRpc::Client.new(input: @input, output: @output,
       handler_name: handler_name)
@@ -68,7 +68,7 @@ class Sandbox::Trusted < Module
     @sandbox.untrusted
   end
 
-  def export(args)
+  def export(args = {})
     @sandbox.add_handler(name: args.fetch(:as), handler: args.fetch(:object))
   end
 

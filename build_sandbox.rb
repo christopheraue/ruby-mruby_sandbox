@@ -16,7 +16,8 @@ build_config = File.join(dir, 'build_config.rb')
 build_args = ARGV
 system "MRUBY_CONFIG=#{build_config} ./minirake #{build_args.join(' ')}"
 
+
 Dir.chdir dir
 Dir.mkdir 'bin' unless File.exist?('bin')
-FileUtils.mv(File.join(mruby_dir, '/build/host/bin/mruby'), File.join(dir, '/bin/mruby-sandbox'))
-FileUtils.mv(File.join(mruby_dir, '/build/irb/bin/mirb'), File.join(dir, '/bin/mirb'))
+FileUtils.cp File.join(mruby_dir, '/build/host/bin/mruby'), File.join(dir, '/bin/mruby-sandbox') if ARGV.empty?
+FileUtils.cp File.join(mruby_dir, '/build/host/bin/mirb'), File.join(dir, '/bin/mirb') if ARGV.include? 'test'

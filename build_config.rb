@@ -9,8 +9,8 @@ MRuby::Build.new do |conf|
   dir = File.expand_path(File.dirname(__FILE__))
 
   conf.gembox File.join(dir, 'mrbgems', 'safe-core')
-  conf.gem core: 'mruby-bin-mirb' if ARGV.include? 'test'
   conf.gem "../mruby-restricted_io"
   conf.gem "../mruby-pipe_rpc"
-  conf.gem dir if ARGV.empty?
+  conf.gem core: 'mruby-bin-mirb' if ENV['TEST']
+  conf.gem dir unless ENV['TEST']
 end

@@ -1,8 +1,4 @@
 class Sandbox
-  # Remove constants from global namespace so no one can mess around with it.
-  IO = Object.remove_const :IO
-  PipeRpc = Object.remove_const :PipeRpc
-
   def initialize
     clear
     @input = IO.new(0, 'r')  #STDIN
@@ -10,7 +6,6 @@ class Sandbox
     @socket = PipeRpc::Socket.new(input: @input, output: @output)
     @server = PipeRpc::Server.new(socket: @socket, receiver: Controller.new(self))
     @clients = {}
-    @output.puts @input.gets.bytes.join(', ')
     @server.listen #blocks and loops
   end
 
@@ -22,21 +17,20 @@ class Sandbox
     true
   end
 
-  def load_untrusted(code)
-    @untrusted.instance_eval(code)
+  def eval_untrusted(code)
+    @untrusted.load(code)
   end
 
-  def load_trusted(code)
-    @trusted.instance_eval(code)
+  def eval_trusted(code)
+    @trusted.load(code)
   end
 
   def add_receiver(args = {})
-    @server.add_receiver(name: args.fetch(:name), receiver: args.fetch(:object))
+    @server.add_receiver(args)
   end
 
-  def client_for(args = {})
-    receiver_name = args.fetch(:receiver_name)
-    @clients[receiver_name] ||= PipeRpc::Client.new(socket: @socket, receiver_name: receiver_name)
+  def client_for(receiver)
+    @clients[receiver] ||= PipeRpc::Client.new(socket: @socket, receiver: receiver)
   end
 end
 
@@ -49,33 +43,47 @@ class Sandbox::Controller
     @sandbox.clear
   end
 
-  def load_untrusted(code)
-    @sandbox.load_untrusted(code)
+  def eval_untrusted(code)
+    @sandbox.eval_untrusted(code)
   end
 
-  def load_trusted(code)
-    @sandbox.load_trusted(code)
+  def eval_trusted(code)
+    @sandbox.eval_trusted(code)
   end
 end
-
-class Sandbox::Untrusted < Module; end
 
 class Sandbox::Trusted < Module
   def initialize(sandbox)
     @sandbox = sandbox
   end
 
-  def untrusted_code
+  def load(code)
+    instance_eval code
+  end
+
+  def untrusted
     @sandbox.untrusted
   end
 
-  def export(args = {})
-    @sandbox.add_receiver(name: args.fetch(:as), receiver: args.fetch(:object))
+  def export(receiver, args = {})
+    @sandbox.add_receiver(name: args.fetch(:as), receiver: receiver)
   end
 
-  def import(name)
-    @sandbox.client_for(receiver_name: name)
+  def client_for(receiver = :default)
+    @sandbox.client_for(receiver)
+  end
+  alias_method :client, :client_for
+end
+
+class Untrusted < Module
+  def load(code)
+    instance_eval code
   end
 end
 
+# Remove constants from global namespace so untrusted code cannot mess around with it.
+Sandbox::GC = Object.remove_const(:GC)
+Sandbox::ObjectSpace = Object.remove_const(:ObjectSpace)
+Sandbox::IO = Object.remove_const(:IO)
+Sandbox::PipeRpc = Object.remove_const(:PipeRpc)
 Object.remove_const(:Sandbox).new

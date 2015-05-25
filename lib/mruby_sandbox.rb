@@ -13,14 +13,14 @@ class MrubySandbox
     end
   end
 
-  def initialize
+  def initialize(receiver = Receiver.new)
     input, w = IO.pipe
     r, output  = IO.pipe
     pid = spawn('bin/mruby_sandbox', in: r, out: w )
     r.close; w.close
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
     socket = PipeRpc::Socket.new(input: input, output: output)
-    @server = PipeRpc::Server.new(socket: socket, receiver: Receiver.new)
+    @server = PipeRpc::Server.new(socket: socket, receiver: receiver)
     @clients = {}
   end
 
@@ -33,5 +33,5 @@ class MrubySandbox
   end
 
   delegate [:clear, :eval] => :client
-  delegate [:add_receiver, :rmv_receiver, :socket] => :@server
+  delegate [:add_receiver, :rmv_receiver, :socket, :handle_request] => :@server
 end

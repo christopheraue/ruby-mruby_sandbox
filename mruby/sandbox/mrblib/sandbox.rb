@@ -1,4 +1,4 @@
-class Sandbox
+class Sandbox < BasicObject
   def initialize
     clear
     @input = IO.new(0, 'r')  #STDIN
@@ -9,20 +9,13 @@ class Sandbox
     @server.listen #blocks and loops
   end
 
-  attr_reader :untrusted
-
   def clear
-    @untrusted = Untrusted.new
-    @trusted = Trusted.new(self)
+    @untrusted = ::Untrusted.new(self)
     true
   end
 
-  def eval_untrusted(code)
-    @untrusted.load(code)
-  end
-
-  def eval_trusted(code)
-    @trusted.load(code)
+  def eval(code)
+    @untrusted.eval(code)
   end
 
   def add_receiver(args = {})
@@ -43,42 +36,28 @@ class Sandbox::Controller
     @sandbox.clear
   end
 
-  def eval_untrusted(code)
-    @sandbox.eval_untrusted(code)
-  end
-
-  def eval_trusted(code)
-    @sandbox.eval_trusted(code)
+  def eval(code)
+    @sandbox.eval(code)
   end
 end
 
-class Sandbox::Trusted < Module
+class Untrusted
   def initialize(sandbox)
     @sandbox = sandbox
   end
 
-  def load(code)
+  def eval(code)
     instance_eval code
   end
 
-  def untrusted
-    @sandbox.untrusted
-  end
-
-  def export(receiver, args = {})
-    @sandbox.add_receiver(name: args.fetch(:as), receiver: receiver)
+  def export(args = {})
+    @sandbox.add_receiver(args)
   end
 
   def client_for(receiver = :default)
     @sandbox.client_for(receiver)
   end
   alias_method :client, :client_for
-end
-
-class Untrusted < Module
-  def load(code)
-    instance_eval code
-  end
 end
 
 # Remove constants from global namespace so untrusted code cannot mess around with it.

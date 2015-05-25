@@ -1,5 +1,7 @@
 require 'pipe_rpc'
 require 'forwardable'
+require_relative 'mruby_sandbox/version'
+require_relative 'mruby_sandbox/receiver'
 
 class MrubySandbox
   extend Forwardable
@@ -18,7 +20,7 @@ class MrubySandbox
     r.close; w.close
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
     socket = PipeRpc::Socket.new(input: input, output: output)
-    @server = PipeRpc::Server.new(socket: socket)
+    @server = PipeRpc::Server.new(socket: socket, receiver: Receiver.new)
     @clients = {}
   end
 
@@ -30,6 +32,6 @@ class MrubySandbox
     client_for :default
   end
 
-  delegate [:clear, :eval_trusted, :eval_untrusted] => :client
+  delegate [:clear, :eval] => :client
   delegate [:add_receiver, :rmv_receiver, :socket] => :@server
 end

@@ -1,4 +1,5 @@
 require 'bundler/setup'
+Bundler.require(:development)
 require 'mruby_sandbox'
 
 RSpec.configure do |config|

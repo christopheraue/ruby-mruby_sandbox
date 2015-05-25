@@ -5,42 +5,22 @@ describe "The sandbox" do
     expect(sandbox.clear).to be true
   end
 
-  it "can execute trusted code" do
-    expect(sandbox.eval_trusted('5*8')).to be 40
+  it "can eval code" do
+    expect(sandbox.eval('5+8')).to be 13
   end
 
-  it "can execute untrusted code" do
-    expect(sandbox.eval_untrusted('5+8')).to be 13
-  end
-
-  describe "The environment for untrusted code" do
+  describe "The environment the code is evaled in" do
     it "does not have access to some constants" do
-      expect{ sandbox.eval_untrusted('Sandbox')     }.to raise_error('uninitialized constant Untrusted::Sandbox')
-      expect{ sandbox.eval_untrusted('IO')          }.to raise_error('uninitialized constant Untrusted::IO')
-      expect{ sandbox.eval_untrusted('PipeRpc')     }.to raise_error('uninitialized constant Untrusted::PipeRpc')
-      expect{ sandbox.eval_untrusted('Trusted')     }.to raise_error('uninitialized constant Untrusted::Trusted')
-      expect{ sandbox.eval_untrusted('GC')          }.to raise_error('uninitialized constant Untrusted::GC')
-      expect{ sandbox.eval_untrusted('ObjectSpace') }.to raise_error('uninitialized constant Untrusted::ObjectSpace')
+      expect{ sandbox.eval('Sandbox')     }.to raise_error('uninitialized constant Untrusted::Sandbox')
+      expect{ sandbox.eval('IO')          }.to raise_error('uninitialized constant Untrusted::IO')
+      expect{ sandbox.eval('PipeRpc')     }.to raise_error('uninitialized constant Untrusted::PipeRpc')
+      expect{ sandbox.eval('Trusted')     }.to raise_error('uninitialized constant Untrusted::Trusted')
+      expect{ sandbox.eval('GC')          }.to raise_error('uninitialized constant Untrusted::GC')
+      expect{ sandbox.eval('ObjectSpace') }.to raise_error('uninitialized constant Untrusted::ObjectSpace')
     end
 
     it 'can be send code in multiple calls' do
-      sandbox.eval_untrusted(<<-CODE)
-        def bla(v = nil)
-          v.nil? ? @bla : @bla = v
-        end
-      CODE
-
-      sandbox.eval_untrusted(<<-CODE)
-        bla 'const'
-      CODE
-
-      expect(sandbox.eval_untrusted('bla')).to eq 'const'
-    end
-  end
-
-  describe "The environment of trusted code" do
-    context "when untrusted code has already been loaded" do
-      before { sandbox.eval_untrusted(<<-CODE) }
+      sandbox.eval(<<-CODE)
         def meth
           'result'
         end
@@ -54,39 +34,48 @@ describe "The sandbox" do
         end
       CODE
 
-      it "has access to already evaled untrusted code" do
-        expect(sandbox.eval_trusted('untrusted::Mod')).to match /::Mod$/
-        expect(sandbox.eval_trusted('untrusted::Klass')).to match /::Klass/
-        expect(sandbox.eval_trusted('untrusted::Klass.new.meth')).to eq 'klass meth'
-        expect(sandbox.eval_trusted('untrusted.meth')).to eq 'result'
-      end
+      expect(sandbox.eval('Mod')).to match /::Mod$/
+      expect(sandbox.eval('Klass')).to match /::Klass/
+      expect(sandbox.eval('Klass.new.meth')).to eq 'klass meth'
+      expect(sandbox.eval('meth')).to eq 'result'
     end
 
     it "can create a receiver for requests" do
-      sandbox.eval_trusted(<<-CODE)
-        class Receiver
+      sandbox.eval(<<-CODE)
+        class Calc
           def multiply(a, b)
             a * b
           end
         end
-        export(Receiver.new, as: :receiver)
+        export(math: Calc.new)
       CODE
 
-      client = sandbox.client_for(:receiver)
+      client = sandbox.client_for(:math)
       expect(client.multiply(5, 9)).to be 45
       expect{ client.clear }.to raise_error(NoMethodError)
     end
 
-    it "can summon a client to talk to a server" do
-      class Receiver
+    it "can summon a client to talk to a Receiver" do
+      class Calc < MrubySandbox::Receiver
         def exp(a, b)
           a ** b
         end
       end
-      sandbox.add_receiver(math: Receiver.new)
+      sandbox.add_receiver(math: Calc.new)
 
-      expect(sandbox.eval_trusted 'client_for(:math).exp(2,8)').to be 256
-      expect{ sandbox.eval_trusted 'client_for(:math).exp' }.to raise_error(ArgumentError)
+      expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
+      expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(ArgumentError)
+    end
+
+    it "cannot eval code in the context of a receiver" do
+      class Safe < MrubySandbox::Receiver
+        def initialize
+          @inside = 'abc'
+        end
+      end
+
+      sandbox.add_receiver(safe: Safe.new)
+      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <safe>')
     end
   end
 end

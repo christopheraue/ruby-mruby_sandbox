@@ -65,7 +65,7 @@ There are two methods available to communicate with the outside:
   ```ruby
   sandbox = MrubySandbox.new
   sandbox.eval(<<-CODE)
-    module Calc
+    class Calc
       def multiply(a, b)
         a * b
       end
@@ -79,7 +79,7 @@ There are two methods available to communicate with the outside:
 
 * `#client_for`: Reaches out to a receiver on the outside of the sandbox
   ```ruby
-  module Calc
+  class Calc < MrubySandbox::Receiver
     def exp(a, b)
       a ** b
     end
@@ -91,3 +91,8 @@ There are two methods available to communicate with the outside:
   sandbox.eval 'client_for(:math).exp(2,8)' # => 256
   sandbox.eval 'client_for(:math).exp' # => ArgumentError
   ```
+
+To create Receivers outside the sandbox let them inherit from `MrubySandbox::Receiver`. This is
+basically a `BasicObject` without `#instance_{eval|exec}` so it does not respond to methods
+capable of executing potential malicious code. Inside the sandbox, in mruby land, nothing bad should
+be possible, if a receiver is an ordinary object. Otherwise we are screwed anyway.

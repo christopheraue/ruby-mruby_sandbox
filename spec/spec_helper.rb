@@ -1,6 +1,5 @@
 require 'bundler/setup'
-require 'pipe_rpc'
-require_relative 'sandbox'
+require 'mruby_sandbox'
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|

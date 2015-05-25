@@ -1,4 +1,10 @@
 PATH
+  remote: .
+  specs:
+    mruby_sandbox (0.1.0)
+      pipe_rpc (~> 0.1)
+
+PATH
   remote: ../ruby-pipe_rpc
   specs:
     pipe_rpc (0.1.0)
@@ -18,14 +24,24 @@ GEM
     rspec-expectations (3.2.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.2.0)
+    rspec-its (1.2.0)
+      rspec-core (>= 3.0.0)
+      rspec-expectations (>= 3.0.0)
     rspec-mocks (3.2.1)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.2.0)
+    rspec-mocks-matchers-send_message (0.2.0)
+      rspec (~> 3.0)
+      rspec-mocks (~> 3.0)
     rspec-support (3.2.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  bundler (~> 1.8)
+  mruby_sandbox!
   pipe_rpc!
-  rspec
+  rspec (~> 3.2)
+  rspec-its
+  rspec-mocks-matchers-send_message (~> 0.2)

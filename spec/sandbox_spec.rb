@@ -1,6 +1,5 @@
 describe "The sandbox" do
-  subject(:mirb_sandbox) { Sandbox.new }
-  subject(:sandbox) { PipeRpc::Client.new(socket: mirb_sandbox.socket) }
+  subject(:sandbox) { MrubySandbox.new }
 
   it "can be cleared" do
     expect(sandbox.clear).to be true
@@ -73,7 +72,7 @@ describe "The sandbox" do
         export(Receiver.new, as: :receiver)
       CODE
 
-      client = PipeRpc::Client.new(socket: mirb_sandbox.socket, receiver: :receiver)
+      client = sandbox.client_for(:receiver)
       expect(client.multiply(5, 9)).to be 45
       expect{ client.clear }.to raise_error(NoMethodError)
     end
@@ -84,8 +83,7 @@ describe "The sandbox" do
           a ** b
         end
       end
-      server = PipeRpc::Server.new(socket: mirb_sandbox.socket, receiver: { math: Receiver.new })
-      sandbox = PipeRpc::Client.new(server: server)
+      sandbox.add_receiver(math: Receiver.new)
 
       expect(sandbox.eval_trusted 'client_for(:math).exp(2,8)').to be 256
       expect{ sandbox.eval_trusted 'client_for(:math).exp' }.to raise_error(ArgumentError)

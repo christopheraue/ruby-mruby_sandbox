@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+def test?
+  ARGV.include? 'test'
+end
+
+def clean?
+  ARGV.include? 'clean'
+end
+
+def build?
+  not test? and not clean?
+end
+
+def clone_mruby_into(mruby_dir)
+  system "git clone https://github.com/mruby/mruby.git #{mruby_dir}"
+end
+
+def build_mruby(config:, args:)
+  system "#{test? ? 'TEST=test' : ''} MRUBY_CONFIG=#{config} ./minirake #{args.join(' ')}"
+end
+
+bin_dir = File.expand_path(File.dirname(__FILE__))
+root_dir = File.join(bin_dir, '..')
+mruby_dir = File.join(root_dir, 'tmp/mruby')
+build_config = File.join(root_dir, 'mruby/config/build_config.rb')
+
+clone_mruby_into(mruby_dir) unless File.exist?(mruby_dir)
+
+Dir.chdir mruby_dir
+build_mruby(config: build_config, args: ARGV)
+
+FileUtils.cp File.join(mruby_dir, 'build/host/bin/mruby'), File.join(bin_dir, 'mruby_sandbox') if build?
+FileUtils.cp File.join(mruby_dir, 'build/host/bin/mirb'), File.join(bin_dir, 'mirb') if test?

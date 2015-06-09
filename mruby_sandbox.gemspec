@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
                           environment to run untrusted code.}
   spec.homepage      = "https://github.com/christopheraue/ruby-mruby_sandbox"
   spec.license       = "MIT"
+  spec.post_install_message = "Run `build_mruby_sandbox` to finish installation."
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.executables   = ["build_mruby_sandbox"]

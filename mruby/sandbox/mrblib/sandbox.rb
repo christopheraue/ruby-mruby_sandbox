@@ -41,7 +41,7 @@ class Sandbox::Controller
   end
 end
 
-class Untrusted
+class Untrusted < Module
   def initialize(sandbox)
     @sandbox = sandbox
   end

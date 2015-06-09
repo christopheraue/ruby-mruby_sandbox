@@ -12,6 +12,5 @@ MRuby::Build.new do |conf|
 
   conf.gembox File.join(dir, 'safe-core')
   conf.gem core: 'mruby-bin-mirb' if ENV['TEST']
-  conf.gem File.join(root_dir, '../../mruby-pipe_rpc')
   conf.gem sandbox_mrbgem unless ENV['TEST']
 end

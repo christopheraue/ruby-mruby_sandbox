@@ -14,8 +14,8 @@ class Sandbox < BasicObject
     true
   end
 
-  def eval(code)
-    @untrusted.eval(code)
+  def eval(code, file = '', lineno = 0)
+    @untrusted.eval(code, file, lineno)
   end
 
   def add_receiver(args = {})
@@ -36,8 +36,8 @@ class Sandbox::Controller
     @sandbox.clear
   end
 
-  def eval(code)
-    @sandbox.eval(code)
+  def eval(code, file = '', lineno = 0)
+    @sandbox.eval(code, file, lineno)
   end
 end
 
@@ -46,8 +46,8 @@ class Untrusted
     @sandbox = sandbox
   end
 
-  def eval(code)
-    instance_eval code
+  def eval(code, file = '', lineno = 0)
+    instance_eval(code, file, lineno)
   end
 
   def export(args = {})

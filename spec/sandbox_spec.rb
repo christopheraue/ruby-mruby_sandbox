@@ -9,7 +9,7 @@ describe "The sandbox" do
     expect(sandbox.eval('5+8')).to be 13
   end
 
-  describe "The environment the code is evaled in" do
+  describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
       expect{ sandbox.eval('Sandbox')     }.to raise_error('uninitialized constant Untrusted::Sandbox')
       expect{ sandbox.eval('IO')          }.to raise_error('uninitialized constant Untrusted::IO')
@@ -63,6 +63,7 @@ describe "The sandbox" do
       end
       sandbox.add_receiver(math: Calc.new)
 
+      expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
       expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(ArgumentError)
     end
@@ -75,7 +76,7 @@ describe "The sandbox" do
       end
 
       sandbox.add_receiver(safe: Safe.new)
-      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <safe>')
+      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <Client:safe>')
     end
   end
 end

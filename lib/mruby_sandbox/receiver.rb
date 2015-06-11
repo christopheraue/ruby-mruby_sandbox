@@ -6,12 +6,17 @@ class MrubySandbox::Receiver < BasicObject
   undef_method :instance_exec
 
   def self.inherited(subclass)
-    subclass.send(:define_method, :respond_to?) do |method|
+    subclass.__send__(:define_method, :respond_to?) do |method|
       subclass.instance_methods.include?(method.to_sym)
     end
 
-    subclass.send(:define_method, :class) do
-      subclass.to_s
+    subclass.__send__(:define_method, :class) do
+      subclass
     end
   end
+
+  def inspect
+    "#<#{self.class}:#{'%#016x' % __id__}>"
+  end
+  alias_method :to_s, :inspect
 end

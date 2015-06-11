@@ -11,3 +11,24 @@ describe MrubySandbox::Receiver do
     it { is_expected.to raise_error(NoMethodError) }
   end
 end
+
+describe "Subclass" do
+  subject(:klass) do
+    class Subclass < MrubySandbox::Receiver; end
+    Subclass
+  end
+  subject(:instance) { klass.new }
+
+  it { is_expected.to respond_to(:respond_to?) }
+
+  describe "#class" do
+    subject { instance.class }
+    it { is_expected.to be klass }
+  end
+
+  describe "#inspect" do
+    subject { instance.inspect }
+    let(:id) { instance.__id__ }
+    it { is_expected.to eq "#<Subclass:#{'%#016x' % id}>" }
+  end
+end

@@ -37,6 +37,7 @@ class MrubySandbox
 
   delegate [:clear, :eval] => :client
   delegate [:add_receiver, :rmv_receiver, :socket, :handle_request] => :@server
+  alias_method :export, :add_receiver
 
   private
 

@@ -19,6 +19,17 @@ describe "The sandbox" do
       expect{ sandbox.eval('ObjectSpace') }.to raise_error('uninitialized constant Untrusted::ObjectSpace')
     end
 
+    it "cannot eval code in the context of a receiver" do
+      class Safe < MrubySandbox::Receiver
+        def initialize
+          @inside = 'abc'
+        end
+      end
+
+      sandbox.add_receiver(safe: Safe.new)
+      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <Client:safe>')
+    end
+
     it 'can be send code in multiple calls' do
       sandbox.eval(<<-CODE)
         def meth
@@ -52,10 +63,11 @@ describe "The sandbox" do
 
       client = sandbox.client_for(:math)
       expect(client.multiply(5, 9)).to be 45
-      expect{ client.clear }.to raise_error(NoMethodError)
+      expect{ client.multiply(3) }.to raise_error(ArgumentError)
+      expect{ client.exp }.to raise_error(NoMethodError)
     end
 
-    it "can summon a client to talk to a Receiver" do
+    it "can summon a client to talk to a receiver" do
       class Calc < MrubySandbox::Receiver
         def exp(a, b)
           a ** b
@@ -66,17 +78,31 @@ describe "The sandbox" do
       expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
       expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(ArgumentError)
+      expect{ sandbox.eval 'client_for(:math).add' }.to raise_error(RuntimeError, 'undefined method `add` for <Client:math>')
     end
 
-    it "cannot eval code in the context of a receiver" do
-      class Safe < MrubySandbox::Receiver
-        def initialize
-          @inside = 'abc'
+    it "can call a receiver method outside the sandbox while handling a request" do
+      sandbox.eval(<<-CODE)
+        class Calc
+          def initialize(untrusted)
+            @math = untrusted.client_for(:math)
+          end
+
+          def square(a)
+            @math.multiply(a, a)
+          end
+        end
+        export(math: Calc.new(self))
+      CODE
+
+      class Calc < MrubySandbox::Receiver
+        def multiply(a, b)
+          a * b
         end
       end
+      sandbox.export(math: Calc.new)
 
-      sandbox.add_receiver(safe: Safe.new)
-      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <Client:safe>')
+      expect(sandbox.client_for(:math).square(5)).to be 25
     end
   end
 end

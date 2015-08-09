@@ -15,6 +15,10 @@ class MrubySandbox::Receiver < BasicObject
     end
   end
 
+  def self.const_missing(name)
+    ::Object.const_get(name)
+  end
+
   def inspect
     "#<#{self.class}:#{'%#016x' % __id__}>"
   end

@@ -11,12 +11,12 @@ describe "The sandbox" do
 
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
-      expect{ sandbox.eval('Sandbox')     }.to raise_error('uninitialized constant Untrusted::Sandbox')
-      expect{ sandbox.eval('IO')          }.to raise_error('uninitialized constant Untrusted::IO')
-      expect{ sandbox.eval('PipeRpc')     }.to raise_error('uninitialized constant Untrusted::PipeRpc')
-      expect{ sandbox.eval('Trusted')     }.to raise_error('uninitialized constant Untrusted::Trusted')
-      expect{ sandbox.eval('GC')          }.to raise_error('uninitialized constant Untrusted::GC')
-      expect{ sandbox.eval('ObjectSpace') }.to raise_error('uninitialized constant Untrusted::ObjectSpace')
+      expect{ sandbox.eval('Sandbox')     }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::Sandbox')
+      expect{ sandbox.eval('IO')          }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::IO')
+      expect{ sandbox.eval('PipeRpc')     }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::PipeRpc')
+      expect{ sandbox.eval('Trusted')     }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::Trusted')
+      expect{ sandbox.eval('GC')          }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::GC')
+      expect{ sandbox.eval('ObjectSpace') }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::ObjectSpace')
     end
 
     it "cannot eval code in the context of a receiver" do
@@ -27,7 +27,7 @@ describe "The sandbox" do
       end
 
       sandbox.add_receiver(safe: Safe.new)
-      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(RuntimeError, 'undefined method `instance_eval` for <Client:safe>')
+      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: undefined method `instance_eval` for <Client:safe>')
     end
 
     it 'can be send code in multiple calls' do
@@ -78,7 +78,7 @@ describe "The sandbox" do
       expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
       expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(ArgumentError)
-      expect{ sandbox.eval 'client_for(:math).add' }.to raise_error(RuntimeError, 'undefined method `add` for <Client:math>')
+      expect{ sandbox.eval 'client_for(:math).add' }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: undefined method `add` for <Client:math>')
     end
 
     it "can call a receiver method outside the sandbox while handling a request" do

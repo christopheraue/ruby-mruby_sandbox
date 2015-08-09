@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency "pipe_rpc", "~> 0.1"
   spec.add_development_dependency "bundler", "~> 1.8"
-  spec.add_development_dependency "rspec", "~> 3.2"
+  spec.add_development_dependency "rspec", "~> 3.2.0"
   spec.add_development_dependency "rspec-its"
   spec.add_development_dependency "rspec-mocks-matchers-send_message", "~> 0.2"
 end

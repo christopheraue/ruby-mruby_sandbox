@@ -31,4 +31,9 @@ describe "Subclass" do
     let(:id) { instance.__id__ }
     it { is_expected.to eq "#<Subclass:#{'%#016x' % id}>" }
   end
+
+  describe "Access to constants" do
+    subject { klass::Object }
+    it { is_expected.to be ::Object }
+  end
 end

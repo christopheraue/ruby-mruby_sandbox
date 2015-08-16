@@ -1,12 +1,11 @@
 class Sandbox < BasicObject
   def initialize
     clear
-    @input = IO.new(0, 'r')  #STDIN
-    @output = IO.new(1, 'w') #STDOUT
-    @socket = PipeRpc::Socket.new(input: @input, output: @output)
-    @server = PipeRpc::Server.new(socket: @socket, receiver: Controller.new(self))
-    @clients = {}
-    @server.listen #blocks and loops
+    input = IO.new(0, 'r')  #STDIN
+    output = IO.new(1, 'w') #STDOUT
+    @hub = PipeRpc::Hub.new(input: input, output: output)
+    add_server(default: Controller.new(self))
+    ::Kernel.loop { @hub.handle_message } # blocks every iteration
   end
 
   def clear
@@ -18,12 +17,12 @@ class Sandbox < BasicObject
     @untrusted.eval(code, file, lineno)
   end
 
-  def add_receiver(args = {})
-    @server.add_receiver(args)
+  def add_server(args = {})
+    @hub.add_server(args)
   end
 
-  def client_for(receiver)
-    @clients[receiver] ||= PipeRpc::Client.new(socket: @socket, receiver: receiver)
+  def client_for(server_name)
+    @hub.client_for(server_name)
   end
 end
 
@@ -51,11 +50,11 @@ class Untrusted < Module
   end
 
   def export(args = {})
-    @sandbox.add_receiver(args)
+    @sandbox.add_server(args)
   end
 
-  def client_for(receiver = :default)
-    @sandbox.client_for(receiver)
+  def client_for(server = :default)
+    @sandbox.client_for(server)
   end
   alias_method :client, :client_for
 end

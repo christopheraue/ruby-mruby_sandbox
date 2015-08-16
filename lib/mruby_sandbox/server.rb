@@ -1,6 +1,6 @@
-class MrubySandbox::Receiver < BasicObject
+class MrubySandbox::Server < BasicObject
   # instance_eval imposes a security vulnerability on the ordinary ruby side of the sandbox: All
-  # receiver's methods are accessible from the inside. So with instance_eval from the inside the
+  # server's methods are accessible from the inside. So with instance_eval from the inside the
   # following is possible: `client.instance_eval '::Kernel.system("rm -rf /")'`
   undef_method :instance_eval
   undef_method :instance_exec

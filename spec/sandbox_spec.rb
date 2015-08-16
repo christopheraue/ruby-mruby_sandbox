@@ -19,15 +19,16 @@ describe "The sandbox" do
       expect{ sandbox.eval('ObjectSpace') }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: uninitialized constant Untrusted::ObjectSpace')
     end
 
-    it "cannot eval code in the context of a receiver" do
-      class Safe < MrubySandbox::Receiver
+    it "cannot eval code in the context of a server" do
+      class Safe < MrubySandbox::Server
         def initialize
           @inside = 'abc'
         end
       end
 
-      sandbox.add_receiver(safe: Safe.new)
-      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: undefined method `instance_eval` for <Client:safe>')
+      sandbox.add_server(safe: Safe.new)
+      expect{ sandbox.eval 'client_for(:safe).instance_eval' }.to raise_error(PipeRpc::OtherSideError,
+          "Default#eval: undefined method `instance_eval' for <Client:safe>")
     end
 
     it 'can be send code in multiple calls' do
@@ -51,7 +52,7 @@ describe "The sandbox" do
       expect(sandbox.eval('meth')).to eq 'result'
     end
 
-    it "can create a receiver for requests" do
+    it "can create a server for requests" do
       sandbox.eval(<<-CODE)
         class Calc
           def multiply(a, b)
@@ -67,21 +68,23 @@ describe "The sandbox" do
       expect{ client.exp }.to raise_error(NoMethodError)
     end
 
-    it "can summon a client to talk to a receiver" do
-      class Calc < MrubySandbox::Receiver
+    it "can summon a client to talk to a server" do
+      class Calc < MrubySandbox::Server
         def exp(a, b)
           a ** b
         end
       end
-      sandbox.add_receiver(math: Calc.new)
+      sandbox.add_server(math: Calc.new)
 
       expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
-      expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(ArgumentError)
-      expect{ sandbox.eval 'client_for(:math).add' }.to raise_error(PipeRpc::OtherSideError, 'Default#eval: undefined method `add` for <Client:math>')
+      expect{ sandbox.eval 'client_for(:math).exp' }.to raise_error(PipeRpc::OtherSideError,
+          "Default#eval: Math#exp: wrong number of arguments (0 for 2)")
+      expect{ sandbox.eval 'client_for(:math).add' }.to raise_error(PipeRpc::OtherSideError,
+          "Default#eval: undefined method `add' for <Client:math>")
     end
 
-    it "can call a receiver method outside the sandbox while handling a request" do
+    it "can call a server method outside the sandbox while handling a request" do
       sandbox.eval(<<-CODE)
         class Calc
           def initialize(untrusted)
@@ -95,7 +98,7 @@ describe "The sandbox" do
         export(math: Calc.new(self))
       CODE
 
-      class Calc < MrubySandbox::Receiver
+      class Calc < MrubySandbox::Server
         def multiply(a, b)
           a * b
         end

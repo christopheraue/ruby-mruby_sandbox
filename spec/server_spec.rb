@@ -1,4 +1,4 @@
-describe MrubySandbox::Receiver do
+describe MrubySandbox::Server do
   subject(:instance) { described_class.new }
 
   describe "#instance_eval" do
@@ -14,7 +14,7 @@ end
 
 describe "Subclass" do
   subject(:klass) do
-    class Subclass < MrubySandbox::Receiver; end
+    class Subclass < MrubySandbox::Server; end
     Subclass
   end
   subject(:instance) { klass.new }

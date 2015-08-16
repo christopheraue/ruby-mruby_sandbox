@@ -1,7 +1,7 @@
 require 'pipe_rpc'
 require 'forwardable'
 require_relative 'mruby_sandbox/version'
-require_relative 'mruby_sandbox/receiver'
+require_relative 'mruby_sandbox/server'
 
 class MrubySandbox
   extend Forwardable
@@ -13,22 +13,19 @@ class MrubySandbox
     end
   end
 
-  def initialize(receiver = Receiver.new)
+  def initialize
     input, w = IO.pipe
     r, output  = IO.pipe
     pid = spawn(executable, in: r, out: w )
     r.close; w.close
+
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
-    socket = PipeRpc::Socket.new(input: input, output: output)
-    @server = PipeRpc::Server.new(socket: socket, receiver: receiver)
-    @clients = {}
+
+    @hub = PipeRpc::Hub.new(input: input, output: output)
+
   rescue Errno::ENOENT => e
     STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
     fail e
-  end
-
-  def client_for(receiver)
-    @clients[receiver] ||= @server.new_linked_client(receiver)
   end
 
   def client
@@ -36,8 +33,8 @@ class MrubySandbox
   end
 
   delegate [:clear, :eval] => :client
-  delegate [:add_receiver, :rmv_receiver, :socket, :handle_request] => :@server
-  alias_method :export, :add_receiver
+  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=] => :@hub
+  alias_method :export, :add_server
 
   private
 

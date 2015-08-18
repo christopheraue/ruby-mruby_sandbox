@@ -33,7 +33,8 @@ class MrubySandbox
   end
 
   delegate [:clear, :eval] => :client
-  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=] => :@hub
+  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,
+      :logger=] => :@hub
   alias_method :export, :add_server
 
   private

@@ -5,7 +5,15 @@ class Sandbox < BasicObject
     output = IO.new(1, 'w') #STDOUT
     @hub = PipeRpc::Hub.new(input: input, output: output)
     add_server(default: Controller.new(self))
-    ::Kernel.loop { @hub.handle_message } # blocks every iteration
+    ::Kernel.loop do
+      begin
+        @hub.handle_message # blocks every iteration
+      rescue => e
+        # reflect errors back to the managing process
+        backtrace = e.backtrace
+        @hub.send_error(code: -32603, data: { message: e.message, backtrace: backtrace })
+      end
+    end
   end
 
   def clear

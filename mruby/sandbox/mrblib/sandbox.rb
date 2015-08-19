@@ -5,15 +5,7 @@ class Sandbox < BasicObject
     output = IO.new(1, 'w') #STDOUT
     @hub = PipeRpc::Hub.new(input: input, output: output)
     add_server(default: Controller.new(self))
-    ::Kernel.loop do
-      begin
-        @hub.handle_message # blocks every iteration
-      rescue ::StandardError => e
-        # reflect errors back to the managing process
-        backtrace = e.backtrace
-        @hub.send_error(code: -32603, data: { message: e.message, backtrace: backtrace })
-      end
-    end
+    ::Kernel.loop { iteration }
   end
 
   def clear
@@ -32,6 +24,20 @@ class Sandbox < BasicObject
   def client_for(server_name)
     @hub.client_for(server_name)
   end
+
+  def debug_mode(debug = true)
+    @hub.logger = debug ? :reflect : false
+  end
+
+  private
+
+  def iteration
+    @hub.handle_message # blocks every iteration
+  rescue ::StandardError => e
+    # reflect errors back to the managing process
+    backtrace = e.backtrace
+    @hub.send_error(code: -32603, data: { message: e.message, backtrace: backtrace })
+  end
 end
 
 class Sandbox::Controller
@@ -45,6 +51,10 @@ class Sandbox::Controller
 
   def eval(code, file = '', lineno = 0)
     @sandbox.eval(code, file, lineno)
+  end
+
+  def debug_mode(debug = true)
+    @sandbox.debug_mode(debug)
   end
 end
 

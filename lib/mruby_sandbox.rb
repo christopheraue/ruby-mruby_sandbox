@@ -16,7 +16,7 @@ class MrubySandbox
   def initialize
     input, w = IO.pipe
     r, output  = IO.pipe
-    pid = spawn(executable, in: r, out: w )
+    pid = spawn(executable, in: r, out: w)
     r.close; w.close
 
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
@@ -32,9 +32,8 @@ class MrubySandbox
     client_for :default
   end
 
-  delegate [:clear, :eval] => :client
-  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,
-      :logger=] => :@hub
+  delegate [:clear, :eval, :debug_mode] => :client
+  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,:logger=] => :@hub
   alias_method :export, :add_server
 
   private

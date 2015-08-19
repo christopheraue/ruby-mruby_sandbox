@@ -32,9 +32,14 @@ class MrubySandbox
     client_for :default
   end
 
-  delegate [:clear, :eval, :debug_mode] => :client
-  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,:logger=] => :@hub
+  delegate [:clear, :eval] => :client
+  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=] => :@hub
   alias_method :export, :add_server
+
+  def logger=(logger)
+    @hub.logger = logger
+    client.debug_mode(!!logger)
+  end
 
   private
 

@@ -23,4 +23,10 @@ class MrubySandbox::Server < BasicObject
     "#<#{self.class}:#{'%#016x' % __id__}>"
   end
   alias_method :to_s, :inspect
+
+  private
+
+  def raise(*args)
+    Kernel.raise *args
+  end
 end

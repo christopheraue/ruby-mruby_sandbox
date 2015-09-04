@@ -9,6 +9,8 @@ describe "The sandbox" do
     expect(sandbox.eval('5+8')).to be 13
   end
 
+  its(:data) { is_expected.to eq({}) }
+
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
       expect{ sandbox.eval('Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::Sandbox')

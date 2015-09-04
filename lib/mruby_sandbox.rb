@@ -7,7 +7,7 @@ class MrubySandbox
   extend Forwardable
 
   def self.finalize(pid)
-    Proc.new do
+    proc do
       Process.kill 9, pid
       Process.wait pid
     end
@@ -22,11 +22,14 @@ class MrubySandbox
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
 
     @hub = PipeRpc::Hub.new(input: input, output: output)
+    @data = {}
 
   rescue Errno::ENOENT => e
     STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
     fail e
   end
+
+  attr_reader :data
 
   def client
     client_for :default

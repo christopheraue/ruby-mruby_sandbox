@@ -6,10 +6,15 @@ require_relative 'mruby_sandbox/server'
 class MrubySandbox
   extend Forwardable
 
+  class << self
+    attr_accessor :logger
+  end
+
   def self.finalize(pid)
-    proc do
+    proc do |id|
       Process.kill 9, pid
       Process.wait pid
+      logger.debug "Sandbox(#{id}) garbage collected and process #{pid} killed"
     end
   end
 
@@ -19,6 +24,7 @@ class MrubySandbox
     pid = spawn(executable, in: r, out: w)
     r.close; w.close
 
+    self.class.logger.debug "Sandbox(#{__id__}) created with process #{pid}"
     ObjectSpace.define_finalizer(self, self.class.finalize(pid))
 
     @hub = PipeRpc::Hub.new(input: input, output: output)
@@ -36,9 +42,14 @@ class MrubySandbox
   end
 
   delegate [:clear, :eval] => :client
-  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,
-      :logger=] => :@hub
+  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=] => :@hub
   alias_method :export, :add_server
+
+  def start_logging
+    @hub.logger = proc do |message|
+      self.class.logger.debug "Sandbox(#{__id__}) #{message}"
+    end
+  end
 
   def reflect_logger_server=(server)
     client.debug_mode(!!server)

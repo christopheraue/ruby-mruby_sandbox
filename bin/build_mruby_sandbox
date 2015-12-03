@@ -15,7 +15,9 @@ def build?
 end
 
 def clone_mruby_into(mruby_dir)
-  system "git clone https://github.com/mruby/mruby.git #{mruby_dir}"
+  system "git clone https://github.com/cremno/mruby.git #{mruby_dir}"
+  Dir.chdir mruby_dir
+  system "git checkout fix-exception-backtrace"
 end
 
 def build_mruby(config:, args:)

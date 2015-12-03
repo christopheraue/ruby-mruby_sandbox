@@ -17,12 +17,12 @@ describe "The sandbox" do
 
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
-      expect{ sandbox.eval('Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::Sandbox')
-      expect{ sandbox.eval('IO')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::IO')
-      expect{ sandbox.eval('PipeRpc')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::PipeRpc')
-      expect{ sandbox.eval('Trusted')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::Trusted')
-      expect{ sandbox.eval('GC')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::GC')
-      expect{ sandbox.eval('ObjectSpace') }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::ObjectSpace')
+      expect{ sandbox.eval('::Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
+      expect{ sandbox.eval('::IO')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant IO')
+      expect{ sandbox.eval('::PipeRpc')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant PipeRpc')
+      expect{ sandbox.eval('::Trusted')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Trusted')
+      expect{ sandbox.eval('::GC')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant GC')
+      expect{ sandbox.eval('::ObjectSpace') }.to raise_error(PipeRpc::InternalError, 'uninitialized constant ObjectSpace')
     end
 
     it "cannot eval code in the context of a server" do

@@ -1,5 +1,6 @@
 require 'pipe_rpc'
 require 'forwardable'
+require 'logger'
 require_relative 'mruby_sandbox/version'
 require_relative 'mruby_sandbox/server'
 
@@ -7,7 +8,11 @@ class MrubySandbox
   extend Forwardable
 
   class << self
-    attr_accessor :logger
+    attr_writer :logger
+
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
   end
 
   def self.finalize(pid)

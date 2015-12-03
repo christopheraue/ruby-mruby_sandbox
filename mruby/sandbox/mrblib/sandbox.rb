@@ -9,7 +9,7 @@ class Sandbox < BasicObject
   end
 
   def clear
-    @untrusted = ::Untrusted.new(self)
+    @untrusted = Untrusted.new(self)
     true
   end
 
@@ -59,7 +59,7 @@ class Sandbox::Controller
   end
 end
 
-class Untrusted < Module
+class Sandbox::Untrusted < Module
   def initialize(sandbox)
     @sandbox = sandbox
   end

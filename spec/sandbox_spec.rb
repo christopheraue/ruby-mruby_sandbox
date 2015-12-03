@@ -11,6 +11,10 @@ describe "The sandbox" do
 
   its(:data) { is_expected.to eq({}) }
 
+  it "reports back low level errors like SyntaxError" do
+    expect{ sandbox.eval('cass Test; end') }.to raise_error(PipeRpc::InternalError, /syntax error/)
+  end
+
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
       expect{ sandbox.eval('Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Untrusted::Sandbox')

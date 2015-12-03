@@ -33,10 +33,11 @@ class Sandbox < BasicObject
 
   def iteration
     @hub.handle_message # blocks every iteration
-  rescue ::StandardError => e
-    # reflect errors back to the managing process
+  rescue ::Exception => e
+    # reflect ALL rescueable errors back to the managing process
     backtrace = e.backtrace
     @hub.send_error(code: -32603, data: { message: e.message, backtrace: backtrace })
+    ::Kernel.raise e
   end
 end
 

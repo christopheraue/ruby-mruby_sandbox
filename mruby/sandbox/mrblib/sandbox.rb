@@ -1,6 +1,7 @@
 class Sandbox < BasicObject
-  def initialize
-    clear
+  def initialize(main)
+    @main = main
+    @main.sandbox = self
     input = IO.new(0, 'r')  #STDIN
     output = IO.new(1, 'w') #STDOUT
     @hub = PipeRpc::Hub.new(input: input, output: output)
@@ -8,13 +9,8 @@ class Sandbox < BasicObject
     ::Kernel.loop { iteration }
   end
 
-  def clear
-    @untrusted = Untrusted.new(self)
-    true
-  end
-
   def eval(code, file = '', lineno = 0)
-    @untrusted.eval(code, file, lineno)
+    @main.eval(code, file, lineno)
   end
 
   def add_server(args = {})
@@ -46,10 +42,6 @@ class Sandbox::Controller
     @sandbox = sandbox
   end
 
-  def clear
-    @sandbox.clear
-  end
-
   def eval(code, file = '', lineno = 0)
     @sandbox.eval(code, file, lineno)
   end
@@ -59,10 +51,9 @@ class Sandbox::Controller
   end
 end
 
-class Sandbox::Untrusted < Module
-  def initialize(sandbox)
-    @sandbox = sandbox
-  end
+# Interface for untrusted code to communicate with the outside
+class << self
+  attr_writer :sandbox
 
   def eval(code, file = '', lineno = 0)
     instance_eval(code, file, lineno)
@@ -83,4 +74,4 @@ Sandbox::GC = Object.remove_const(:GC)
 Sandbox::ObjectSpace = Object.remove_const(:ObjectSpace)
 Sandbox::IO = Object.remove_const(:IO)
 Sandbox::PipeRpc = Object.remove_const(:PipeRpc)
-Object.remove_const(:Sandbox).new
+Object.remove_const(:Sandbox).new(self)

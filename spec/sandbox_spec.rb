@@ -1,10 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox.new }
 
-  it "can be cleared" do
-    expect(sandbox.clear).to be true
-  end
-
   it "can eval code" do
     expect(sandbox.eval('5+8')).to be 13
   end
@@ -18,7 +14,7 @@ describe "The sandbox" do
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
       expect{ sandbox.eval('::Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
-      expect{ sandbox.eval('Sandbox')       }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox::Untrusted::Sandbox')
+      expect{ sandbox.eval('Sandbox')       }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
       expect{ sandbox.eval('::IO')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant IO')
       expect{ sandbox.eval('::PipeRpc')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant PipeRpc')
       expect{ sandbox.eval('::GC')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant GC')
@@ -42,7 +38,9 @@ describe "The sandbox" do
         def meth
           'result'
         end
+      CODE
 
+      sandbox.eval(<<-CODE)
         module Mod; end
 
         class Klass
@@ -52,8 +50,8 @@ describe "The sandbox" do
         end
       CODE
 
-      expect(sandbox.eval('Mod')).to match /::Mod$/
-      expect(sandbox.eval('Klass')).to match /::Klass/
+      expect(sandbox.eval('Mod')).to match /Mod$/
+      expect(sandbox.eval('Klass')).to match /Klass/
       expect(sandbox.eval('Klass.new.meth')).to eq 'klass meth'
       expect(sandbox.eval('meth')).to eq 'result'
     end

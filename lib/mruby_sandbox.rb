@@ -48,7 +48,7 @@ class MrubySandbox
 
   delegate [:clear, :eval] => :client
   delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,
-    :on_sent, :on_received] => :@hub
+    :on_sent, :on_received, :on_incoming_request] => :@hub
   alias_method :export, :add_server
 
   def start_logging

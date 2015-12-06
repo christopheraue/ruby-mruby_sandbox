@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mruby_sandbox (0.2.0)
+    mruby_sandbox (0.3.1)
       pipe_rpc (~> 0.2)
 
 PATH

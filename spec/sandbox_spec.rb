@@ -83,10 +83,12 @@ describe "The sandbox" do
 
       expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
-      expect{ sandbox.eval 'client_for(:math).exp', __FILE__, __LINE__ }.to raise_error(PipeRpc::InternalError,
-          "wrong number of arguments (0 for 2)")
-      expect{ sandbox.eval 'client_for(:math).add', __FILE__, __LINE__ }.to raise_error(PipeRpc::InternalError,
-          "undefined method `add' for <Client:math>")
+      expect{ sandbox.eval 'client_for(:math).exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
+          PipeRpc::ReflectedError, "undefined method `**' for nil:NilClass")
+      expect{ sandbox.eval 'client_for(:math).exp', __FILE__, __LINE__ }.to raise_error(
+          PipeRpc::InternalError, "wrong number of arguments (0 for 2)")
+      expect{ sandbox.eval 'client_for(:math).add', __FILE__, __LINE__ }.to raise_error(
+          PipeRpc::InternalError, "undefined method `add' for <Client:math>")
     end
 
     it "can call a server method outside the sandbox while handling a request" do

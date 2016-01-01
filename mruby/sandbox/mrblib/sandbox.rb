@@ -32,7 +32,7 @@ class Sandbox < BasicObject
   rescue ::Exception => e
     # reflect ALL rescueable errors back to the managing process
     backtrace = e.backtrace
-    @hub.send_error(code: -32603, data: { message: e.message, backtrace: backtrace })
+    @hub.send_response PipeRpc::ErrorResponse.new(error: { code: -32603, data: { message: e.message, backtrace: backtrace } })
     ::Kernel.raise e
   end
 end

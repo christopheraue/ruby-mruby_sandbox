@@ -9,7 +9,7 @@ GEM
   specs:
     diff-lcs (1.2.5)
     json (1.8.3)
-    pipe_rpc (0.2.0)
+    pipe_rpc (0.2.2)
       json
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
@@ -42,4 +42,4 @@ DEPENDENCIES
   rspec-mocks-matchers-send_message (~> 0.2)
 
 BUNDLED WITH
-   1.10.6
+   1.11.2

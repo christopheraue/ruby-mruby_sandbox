@@ -15,22 +15,13 @@ class MrubySandbox
     end
   end
 
-  def self.finalize(pid)
-    proc do |id|
-      Process.kill 9, pid
-      Process.wait pid
-      logger.debug "Sandbox(#{id}) garbage collected and process #{pid} killed"
-    end
-  end
-
   def initialize
     input, w = IO.pipe
     r, output  = IO.pipe
-    pid = spawn(executable, in: r, out: w)
+    @pid = spawn(executable, in: r, out: w)
     r.close; w.close
 
-    self.class.logger.debug "Sandbox(#{__id__}) created with process #{pid}"
-    ObjectSpace.define_finalizer(self, self.class.finalize(pid))
+    self.class.logger.debug "Sandbox(#{__id__}) created with process #{@pid}"
 
     @hub = PipeRpc::Hub.new(input: input, output: output)
     @data = {}
@@ -64,6 +55,15 @@ class MrubySandbox
     else
       rmv_server(:reflect_logger)
     end
+  end
+
+  def tear_down
+    return unless @pid
+    @hub.cancel
+    Process.kill 9, @pid
+    Process.wait @pid
+    self.class.logger.debug "Sandbox(#{__id__}) teared down and process #{@pid} killed"
+    @pid = nil
   end
 
   private

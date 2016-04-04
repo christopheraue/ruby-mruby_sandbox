@@ -1,6 +1,7 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox.new }
   #before { sandbox.start_logging }
+  after{ sandbox.tear_down }
 
   it "can eval code" do
     expect(sandbox.eval('5+8')).to be 13
@@ -10,6 +11,12 @@ describe "The sandbox" do
 
   it "reports back low level errors like SyntaxError" do
     expect{ sandbox.eval('cass Test; end') }.to raise_error(PipeRpc::InternalError, /syntax error/)
+  end
+
+  it "can be canceled" do
+    expect{ sandbox.eval('2') }.to be 2
+    sandbox.tear_down
+    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::CanceledError)
   end
 
   describe "The environment the code is eval'd in" do

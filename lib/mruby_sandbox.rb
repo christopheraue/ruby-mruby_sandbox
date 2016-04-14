@@ -1,75 +1,66 @@
 require 'pipe_rpc'
-require 'forwardable'
 require 'logger'
+
 require_relative 'mruby_sandbox/version'
 require_relative 'mruby_sandbox/server'
 
-class MrubySandbox
-  extend Forwardable
+module MrubySandbox
+  class MrubySandbox < PipeRpc::Gateway
+    class << self
+      attr_writer :logger
 
-  class << self
-    attr_writer :logger
-
-    def logger
-      @logger ||= Logger.new(STDOUT)
+      def logger
+        @logger ||= Logger.new(STDOUT)
+      end
     end
-  end
 
-  def initialize
-    input, w = IO.pipe
-    r, output  = IO.pipe
-    @pid = spawn(executable, in: r, out: w)
-    r.close; w.close
+    def initialize
+      input, w = IO.pipe
+      r, output  = IO.pipe
+      @pid = spawn(executable, in: r, out: w)
+      r.close; w.close
 
-    self.class.logger.debug "Sandbox(#{__id__}) created with process #{@pid}"
+      self.class.logger.debug "Sandbox(#{__id__}) created with process #{@pid}"
 
-    @hub = PipeRpc::Hub.new(input: input, output: output)
-    @data = {}
+      super(input: input, output: output)
 
-  rescue Errno::ENOENT => e
-    STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
-    fail e
-  end
-
-  attr_reader :data
-
-  def client
-    client_for :default
-  end
-
-  delegate [:clear, :eval] => :client
-  delegate [:add_server, :rmv_server, :client_for, :channel, :handle_message, :loop_iteration=,
-    :on_sent, :on_received, :on_incoming_request] => :@hub
-  alias_method :export, :add_server
-
-  def start_logging
-    @hub.logger = proc do |message|
-      self.class.logger.debug "Sandbox(#{__id__}) #{message}"
+    rescue Errno::ENOENT => e
+      STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
+      fail e
     end
-  end
 
-  def reflect_logger_server=(server)
-    client.debug_mode(!!server)
-    if server
-      add_server(reflect_logger: server)
-    else
-      rmv_server(:reflect_logger)
+    def client
+      clients[:default]
     end
-  end
 
-  def tear_down
-    return unless @pid
-    @hub.cancel
-    Process.kill 9, @pid
-    Process.wait @pid
-    self.class.logger.debug "Sandbox(#{__id__}) teared down and process #{@pid} killed"
-    @pid = nil
-  end
+    def eval(*args)
+      client.eval(*args)
+    end
 
-  private
+    def start_logging
+      on_sent do |message|
+        self.class.logger.debug "Sandbox(#{__id__}) sent: #{message}"
+      end
 
-  def executable
-    current_dir = File.expand_path(File.dirname(__FILE__))
-    File.join(current_dir, '../bin/mruby_sandbox')
+      on_received do |message|
+        self.class.logger.debug "Sandbox(#{__id__}) received: #{message}"
+      end
+    end
+
+    def close
+      return unless @pid
+      super
+      Process.kill 9, @pid
+      Process.wait @pid
+      self.class.logger.debug "Sandbox(#{__id__}) teared down and process #{@pid} killed"
+      @pid = nil
+    end
+
+    private
+
+    def executable
+      current_dir = File.expand_path(File.dirname(__FILE__))
+      File.join(current_dir, '../bin/mruby_sandbox')
+    end
   end
 end

@@ -1,3 +1,3 @@
-class MrubySandbox
-  VERSION = "0.4.0"
+module MrubySandbox
+  VERSION = "0.5.0"
 end

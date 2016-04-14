@@ -1,22 +1,20 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox.new }
-  #before { sandbox.start_logging }
-  after{ sandbox.tear_down }
+  subject(:sandbox) { MrubySandbox::MrubySandbox.new }
+  before { sandbox.start_logging }
+  after{ sandbox.close }
 
   it "can eval code" do
     expect(sandbox.eval('5+8')).to be 13
   end
 
-  its(:data) { is_expected.to eq({}) }
-
   it "reports back low level errors like SyntaxError" do
     expect{ sandbox.eval('cass Test; end') }.to raise_error(PipeRpc::InternalError, /syntax error/)
   end
 
-  it "can be canceled" do
+  it "can be closed" do
     expect{ sandbox.eval('2') }.to be 2
-    sandbox.tear_down
-    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::CanceledError)
+    sandbox.close
+    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError)
   end
 
   describe "The environment the code is eval'd in" do
@@ -36,7 +34,7 @@ describe "The sandbox" do
         end
       end
 
-      sandbox.add_server(safe: Safe.new)
+      sandbox.servers.add(safe: Safe.new)
       expect{ sandbox.eval 'client_for(:safe).instance_eval', __FILE__, __LINE__ }.to raise_error(
           PipeRpc::InternalError, "undefined method `instance_eval' for <Client:safe>")
     end
@@ -71,10 +69,10 @@ describe "The sandbox" do
             a * b
           end
         end
-        export(math: Calc.new)
+        add_server(math: Calc.new)
       CODE
 
-      client = sandbox.client_for(:math)
+      client = sandbox.clients[:math]
       expect(client.multiply(5, 9)).to be 45
       expect{ client.multiply('a', 'b') }.to raise_error(PipeRpc::InternalError)
       expect{ client.multiply(3) }.to raise_error(ArgumentError)
@@ -87,7 +85,7 @@ describe "The sandbox" do
           a ** b
         end
       end
-      sandbox.add_server(math: Calc.new)
+      sandbox.servers.add(math: Calc.new)
 
       expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
@@ -110,7 +108,7 @@ describe "The sandbox" do
             @math.multiply(a, a)
           end
         end
-        export(math: Calc.new(self))
+        add_server(math: Calc.new(self))
       CODE
 
       class Calc < MrubySandbox::Server
@@ -118,9 +116,9 @@ describe "The sandbox" do
           a * b
         end
       end
-      sandbox.export(math: Calc.new)
+      sandbox.servers.add(math: Calc.new)
 
-      expect(sandbox.client_for(:math).square(5)).to be 25
+      expect(sandbox.clients[:math].square(5)).to be 25
     end
   end
 end

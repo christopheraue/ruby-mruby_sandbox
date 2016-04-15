@@ -75,8 +75,8 @@ describe "The sandbox" do
       client = sandbox.clients[:math]
       expect(client.multiply(5, 9)).to be 45
       expect{ client.multiply('a', 'b') }.to raise_error(PipeRpc::InternalError)
-      expect{ client.multiply(3) }.to raise_error(ArgumentError)
-      expect{ client.exp }.to raise_error(NoMethodError)
+      expect{ client.multiply(3) }.to raise_error(PipeRpc::ArgumentError)
+      expect{ client.exp }.to raise_error(PipeRpc::NoMethodError)
     end
 
     it "can summon a client to talk to a server" do

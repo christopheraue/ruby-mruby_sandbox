@@ -1,3 +1,3 @@
 module MrubySandbox
-  VERSION = "0.5.1"
+  VERSION = "0.5.2pre"
 end

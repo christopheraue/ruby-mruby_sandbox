@@ -1,16 +1,16 @@
 PATH
   remote: .
   specs:
-    mruby_sandbox (0.5.0)
-      pipe_rpc (~> 1.1)
+    mruby_sandbox (0.5.1)
+      pipe_rpc (~> 2.0.0pre)
 
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.5)
-    json (1.8.3)
-    pipe_rpc (1.1.1)
-      json
+    msgpack (0.7.6)
+    pipe_rpc (2.0.0pre)
+      msgpack (~> 0.7)
     rspec (3.4.0)
       rspec-core (~> 3.4.0)
       rspec-expectations (~> 3.4.0)
@@ -42,4 +42,4 @@ DEPENDENCIES
   rspec-mocks-matchers-send_message (~> 0.2)
 
 BUNDLED WITH
-   1.11.2
+   1.12.0

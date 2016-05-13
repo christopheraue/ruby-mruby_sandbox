@@ -92,7 +92,7 @@ describe "The sandbox" do
       expect{ sandbox.eval 'client_for(:math).exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
           PipeRpc::ReflectedError, "undefined method `**' for nil:NilClass")
       expect{ sandbox.eval 'client_for(:math).exp', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::InternalError, "wrong number of arguments (0 for 2)")
+          PipeRpc::InternalError, "wrong number of arguments (given 0, expected 2)")
       expect{ sandbox.eval 'client_for(:math).add', __FILE__, __LINE__ }.to raise_error(
           PipeRpc::InternalError, "undefined method `add' for <Client:math>")
     end

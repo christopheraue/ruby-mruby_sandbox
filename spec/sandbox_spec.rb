@@ -1,6 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::MrubySandbox.new }
-  before { sandbox.start_logging }
+  #before { sandbox.start_logging }
   after{ sandbox.close }
 
   it "can eval code" do

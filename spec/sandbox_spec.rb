@@ -17,7 +17,7 @@ describe "The sandbox" do
     expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError)
   end
 
-  it "preserves standard types" do
+  it "preserves standard types coming from inside the sandbox" do
     expect{ sandbox.eval('nil') }.to be nil
     expect{ sandbox.eval('false') }.to be false
     expect{ sandbox.eval('true') }.to be true
@@ -27,6 +27,32 @@ describe "The sandbox" do
     expect{ sandbox.eval(':symbol') }.to be :symbol
     expect{ sandbox.eval('[]') }.to eq []
     expect{ sandbox.eval('{}') }.to eq({})
+  end
+
+  it "preserves standard types coming from outside the sandbox" do
+    class Preserve < MrubySandbox::Server
+      def nil; nil end
+      def false; false end
+      def true; true end
+      def int; 1 end
+      def float; 1.2 end
+      def string; 'string' end
+      def symbol; :symbol end
+      def array; [:item1, :item2] end
+      def hash; { key: :value } end
+    end
+    sandbox.servers.add(preserve: Preserve.new)
+
+    expect(sandbox.eval 'client_for(:preserve).nil == nil').to be true
+    expect(sandbox.eval 'client_for(:preserve).false == false').to be true
+    expect(sandbox.eval 'client_for(:preserve).true == true').to be true
+    expect(sandbox.eval 'client_for(:preserve).int == 1').to be true
+    expect(sandbox.eval 'client_for(:preserve).float == 1.2').to be true
+    expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
+    expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
+    expect(sandbox.eval 'client_for(:preserve).symbol == :symbol').to be true
+    expect(sandbox.eval 'client_for(:preserve).array == [:item1, :item2]').to be true
+    expect(sandbox.eval 'client_for(:preserve).hash == { key: :value }').to be true
   end
 
   it "converts objects of custom types to strings" do

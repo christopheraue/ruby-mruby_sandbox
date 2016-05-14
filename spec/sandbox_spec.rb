@@ -38,6 +38,7 @@ describe "The sandbox" do
       def float; 1.2 end
       def string; 'string' end
       def symbol; :symbol end
+      def non_existent_symbol; :__non_existent_symbol__ end
       def array; [:item1, :item2] end
       def hash; { key: :value } end
     end
@@ -50,6 +51,7 @@ describe "The sandbox" do
     expect(sandbox.eval 'client_for(:preserve).float == 1.2').to be true
     expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
     expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
+    expect(sandbox.eval 'client_for(:preserve).non_existent_symbol').to be :__non_existent_symbol__
     expect(sandbox.eval 'client_for(:preserve).symbol == :symbol').to be true
     expect(sandbox.eval 'client_for(:preserve).array == [:item1, :item2]').to be true
     expect(sandbox.eval 'client_for(:preserve).hash == { key: :value }').to be true

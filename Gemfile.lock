@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mruby_sandbox (0.5.1)
+    mruby_sandbox (0.5.2pre)
       pipe_rpc (~> 2.0.0pre)
 
 GEM

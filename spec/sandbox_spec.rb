@@ -17,6 +17,22 @@ describe "The sandbox" do
     expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError)
   end
 
+  it "preserves standard types" do
+    expect{ sandbox.eval('nil') }.to be nil
+    expect{ sandbox.eval('false') }.to be false
+    expect{ sandbox.eval('true') }.to be true
+    expect{ sandbox.eval('1') }.to be 1
+    expect{ sandbox.eval('1.2') }.to be 1.2
+    expect{ sandbox.eval('"string"') }.to eq "string"
+    expect{ sandbox.eval(':symbol') }.to be :symbol
+    expect{ sandbox.eval('[]') }.to eq []
+    expect{ sandbox.eval('{}') }.to eq({})
+  end
+
+  it "converts objects of custom types to strings" do
+    expect{ sandbox.eval('class Test; end; Test.new') }.to match /#<#<Class:0x[0-9a-f]+>::Test:0x[0-9a-f]+>/
+  end
+
   describe "The environment the code is eval'd in" do
     it "does not have access to some constants" do
       expect{ sandbox.eval('::Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
@@ -56,8 +72,8 @@ describe "The sandbox" do
         end
       CODE
 
-      expect(sandbox.eval('Mod')).to match /Mod$/
-      expect(sandbox.eval('Klass')).to match /Klass/
+      expect(sandbox.eval('Mod')).to end_with 'Mod'
+      expect(sandbox.eval('Klass')).to end_with 'Klass'
       expect(sandbox.eval('Klass.new.meth')).to eq 'klass meth'
       expect(sandbox.eval('meth')).to eq 'result'
     end

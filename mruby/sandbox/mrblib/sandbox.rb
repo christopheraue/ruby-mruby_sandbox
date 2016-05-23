@@ -25,14 +25,12 @@ class Sandbox < PipeRpc::Gateway
 end
 
 # Interface for untrusted code to communicate with the outside
-class << self
-  def eval(code, file = '', lineno = 0)
-    instance_eval(code, file, lineno)
-  end
+def eval(code, file = '', lineno = 0)
+  super(code, nil, file, lineno)
+end
 
-  def client
-    clients[:default]
-  end
+def client
+  clients[:default]
 end
 
 # Remove constants from global namespace so untrusted code cannot mess around with it.

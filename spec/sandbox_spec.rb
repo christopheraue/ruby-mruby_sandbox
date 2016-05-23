@@ -58,7 +58,7 @@ describe "The sandbox" do
   end
 
   it "converts objects of custom types to strings" do
-    expect{ sandbox.eval('class Test; end; Test.new') }.to match /#<#<Class:0x[0-9a-f]+>::Test:0x[0-9a-f]+>/
+    expect{ sandbox.eval('class Test; end; Test.new') }.to match /#<Test:0x[0-9a-f]+>/
   end
 
   describe "The environment the code is eval'd in" do
@@ -79,8 +79,24 @@ describe "The sandbox" do
       end
 
       sandbox.servers.add(safe: Safe.new)
+
+      expect{ sandbox.eval 'client_for(:safe).eval', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `eval' for <Client:safe>")
+
       expect{ sandbox.eval 'client_for(:safe).instance_eval', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::InternalError, "undefined method `instance_eval' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `instance_eval' for <Client:safe>")
+      expect{ sandbox.eval 'client_for(:safe).instance_exec', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `instance_exec' for <Client:safe>")
+
+      expect{ sandbox.eval 'client_for(:safe).class_eval', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `class_eval' for <Client:safe>")
+      expect{ sandbox.eval 'client_for(:safe).class_exec', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `class_exec' for <Client:safe>")
+
+      expect{ sandbox.eval 'client_for(:safe).module_eval', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `module_eval' for <Client:safe>")
+      expect{ sandbox.eval 'client_for(:safe).module_exec', __FILE__, __LINE__ }.to raise_error(
+        PipeRpc::InternalError, "undefined method `module_exec' for <Client:safe>")
     end
 
     it 'can be send code in multiple calls' do

@@ -160,15 +160,15 @@ describe "The sandbox" do
     it "can call a server method outside the sandbox while handling a request" do
       sandbox.eval(<<-CODE)
         class Calc
-          def initialize(untrusted)
-            @math = untrusted.client_for(:math)
+          def initialize
+            @math = client_for(:math)
           end
 
           def square(a)
             @math.multiply(a, a)
           end
         end
-        add_server(math: Calc.new(self))
+        add_server(math: Calc.new)
       CODE
 
       class Calc < MrubySandbox::Server

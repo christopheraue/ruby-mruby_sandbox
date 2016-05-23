@@ -10,11 +10,11 @@ class Sandbox < PipeRpc::Gateway
 
     sandbox = self
 
-    main.define_singleton_method :add_server do |*args|
+    Object.define_method :add_server do |*args|
       sandbox.servers.add(*args)
     end
 
-    main.define_singleton_method :client_for do |server|
+    Object.define_method :client_for do |server|
       sandbox.clients[server]
     end
 
@@ -30,7 +30,7 @@ def eval(code, file = '', lineno = 0)
 end
 
 def client
-  clients[:default]
+  client_for(:default)
 end
 
 # Remove constants from global namespace so untrusted code cannot mess around with it.

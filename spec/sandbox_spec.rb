@@ -145,9 +145,10 @@ describe "The sandbox" do
           a ** b
         end
       end
-      sandbox.servers.add(math: Calc.new)
+      calc = Calc.new
+      sandbox.servers.add(math: calc)
 
-      expect(sandbox.eval 'client_for(:math)').to eq '<Client:math>'
+      expect(sandbox.eval 'client_for(:math)').to be calc
       expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
       expect{ sandbox.eval 'client_for(:math).exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
           PipeRpc::ReflectedError, "undefined method `**' for nil:NilClass")

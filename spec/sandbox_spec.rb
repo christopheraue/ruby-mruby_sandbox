@@ -123,16 +123,16 @@ describe "The sandbox" do
     end
 
     it "can create a server for requests" do
-      sandbox.eval(<<-CODE, __FILE__, __LINE__)
-        class Calc
+      client = sandbox.eval(<<-CODE, __FILE__, __LINE__)
+        class Calc < Server
           def multiply(a, b)
             a * b
           end
         end
-        add_server(math: Calc.new)
+        @calc = Calc.new
       CODE
 
-      client = sandbox.clients[:math]
+      expect(client.__rpc_server_id__).to be sandbox.eval("@calc.to_rpc_server_id")
       expect(client.multiply(5, 9)).to be 45
       expect{ client.multiply('a', 'b') }.to raise_error(PipeRpc::InternalError)
       expect{ client.multiply(3) }.to raise_error(PipeRpc::ArgumentError)

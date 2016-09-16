@@ -13,8 +13,8 @@ describe "The sandbox" do
 
   it "can be closed" do
     expect{ sandbox.eval('2') }.to be 2
-    sandbox.close
-    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError)
+    sandbox.close('reason')
+    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError, 'reason')
   end
 
   it "preserves standard types coming from inside the sandbox" do

@@ -1,1 +1,1 @@
-class MrubySandbox::Server < PipeRpc::Hub::Server; end
+class MrubySandbox::Server < PipeRpc::Server; end

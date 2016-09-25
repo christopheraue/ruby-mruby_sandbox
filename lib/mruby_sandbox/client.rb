@@ -1,0 +1,1 @@
+MrubySandbox::Client = PipeRpc::Client

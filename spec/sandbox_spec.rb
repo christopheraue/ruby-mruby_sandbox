@@ -71,6 +71,12 @@ describe "The sandbox" do
       expect{ sandbox.eval('::ObjectSpace') }.to raise_error(PipeRpc::InternalError, 'uninitialized constant ObjectSpace')
     end
 
+    it "can access some Pipe Rpc constants" do
+      expect(sandbox.eval 'Server').to eq "PipeRpc::Server"
+      expect(sandbox.eval 'Client').to eq "PipeRpc::Client"
+      expect(sandbox.eval 'Mapper').to eq "PipeRpc::Mapper"
+    end
+
     it "cannot eval code in the context of a server" do
       class Safe < MrubySandbox::Server
         def initialize

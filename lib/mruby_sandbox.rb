@@ -3,6 +3,7 @@ require 'logger'
 
 require_relative 'mruby_sandbox/version'
 require_relative 'mruby_sandbox/server'
+require_relative 'mruby_sandbox/client'
 
 module MrubySandbox
   class MrubySandbox < PipeRpc::Gateway

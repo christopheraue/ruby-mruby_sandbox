@@ -1,15 +1,15 @@
 PATH
   remote: .
   specs:
-    mruby_sandbox (0.7.1)
-      pipe_rpc (~> 2.2)
+    mruby_sandbox (0.7.2)
+      pipe_rpc (~> 2.3)
 
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.5)
     msgpack (1.0.0)
-    pipe_rpc (2.2.2)
+    pipe_rpc (2.3.0)
       msgpack (~> 1.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)

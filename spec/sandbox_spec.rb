@@ -132,7 +132,6 @@ describe "The sandbox" do
         @calc = Calc.new
       CODE
 
-      expect(client.__rpc_server_id__).to be sandbox.eval("@calc.to_rpc_server_id")
       expect(client.multiply(5, 9)).to be 45
       expect{ client.multiply('a', 'b') }.to raise_error(PipeRpc::InternalError)
       expect{ client.multiply(3) }.to raise_error(PipeRpc::ArgumentError)

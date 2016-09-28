@@ -1,0 +1,1 @@
+MrubySandbox::Mapper = PipeRpc::Mapper

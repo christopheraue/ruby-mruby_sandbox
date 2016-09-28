@@ -57,6 +57,10 @@ module MrubySandbox
       @pid = nil
     end
 
+    def inspect
+      "#<#{self.class}##{__id__} @pid=#{@pid}>"
+    end
+
     private
 
     def executable

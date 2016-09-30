@@ -32,12 +32,8 @@ module MrubySandbox
       fail e
     end
 
-    def client
-      clients[:default]
-    end
-
     def eval(*args)
-      client.eval(*args)
+      clients[:default].eval(*args)
     end
 
     def start_logging

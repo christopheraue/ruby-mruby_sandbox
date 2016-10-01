@@ -67,8 +67,6 @@ describe "The sandbox" do
       expect{ sandbox.eval('Sandbox')       }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
       expect{ sandbox.eval('::IO')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant IO')
       expect{ sandbox.eval('::PipeRpc')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant PipeRpc')
-      expect{ sandbox.eval('::GC')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant GC')
-      expect{ sandbox.eval('::ObjectSpace') }.to raise_error(PipeRpc::InternalError, 'uninitialized constant ObjectSpace')
     end
 
     it "can access some Pipe Rpc constants" do

@@ -1,1 +1,0 @@
-MrubySandbox::BasicInterface = PipeRpc::BasicInterface

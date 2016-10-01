@@ -73,8 +73,9 @@ describe "The sandbox" do
 
     it "can access some Pipe Rpc constants" do
       expect(sandbox.eval 'Server').to eq "PipeRpc::Server"
+      expect(sandbox.eval 'SubjectServer').to eq "PipeRpc::SubjectServer"
       expect(sandbox.eval 'Client').to eq "PipeRpc::Client"
-      expect(sandbox.eval 'Mapper').to eq "PipeRpc::Mapper"
+      expect(sandbox.eval 'ClientWrapper').to eq "PipeRpc::ClientWrapper"
     end
 
     it "cannot eval code in the context of a server" do
@@ -87,22 +88,22 @@ describe "The sandbox" do
       sandbox.servers.add(safe: Safe.new)
 
       expect{ sandbox.eval 'client_for(:safe).eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `eval' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `eval' for safe")
 
       expect{ sandbox.eval 'client_for(:safe).instance_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `instance_eval' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `instance_eval' for safe")
       expect{ sandbox.eval 'client_for(:safe).instance_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `instance_exec' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `instance_exec' for safe")
 
       expect{ sandbox.eval 'client_for(:safe).class_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `class_eval' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `class_eval' for safe")
       expect{ sandbox.eval 'client_for(:safe).class_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `class_exec' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `class_exec' for safe")
 
       expect{ sandbox.eval 'client_for(:safe).module_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `module_eval' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `module_eval' for safe")
       expect{ sandbox.eval 'client_for(:safe).module_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `module_exec' for <Client:safe>")
+        PipeRpc::InternalError, "undefined method `module_exec' for safe")
     end
 
     it 'can be send code in multiple calls' do
@@ -160,7 +161,7 @@ describe "The sandbox" do
       expect{ sandbox.eval 'client_for(:math).exp', __FILE__, __LINE__ }.to raise_error(
           PipeRpc::InternalError, "wrong number of arguments (given 0, expected 2)")
       expect{ sandbox.eval 'client_for(:math).add', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::InternalError, "undefined method `add' for <Client:math>")
+          PipeRpc::InternalError, "undefined method `add' for math")
     end
 
     it "can call a server method outside the sandbox while handling a request" do

@@ -1,1 +1,0 @@
-MrubySandbox::Server = PipeRpc::Server

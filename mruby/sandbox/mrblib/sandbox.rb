@@ -34,8 +34,9 @@ def client
 end
 
 Server = PipeRpc::Server
+SubjectServer = PipeRpc::SubjectServer
 Client = PipeRpc::Client
-Mapper = PipeRpc::Mapper
+ClientWrapper = PipeRpc::ClientWrapper
 
 # Remove constants from global namespace so untrusted code cannot mess around with it.
 Object.remove_const(:GC)

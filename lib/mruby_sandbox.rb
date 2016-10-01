@@ -2,12 +2,13 @@ require 'pipe_rpc'
 require 'logger'
 
 require_relative 'mruby_sandbox/version'
-require_relative 'mruby_sandbox/server'
-require_relative 'mruby_sandbox/client'
-require_relative 'mruby_sandbox/basic_interface'
-require_relative 'mruby_sandbox/mapper'
 
 module MrubySandbox
+  Server = PipeRpc::Server
+  SubjectServer = PipeRpc::SubjectServer
+  Client = PipeRpc::Client
+  ClientWrapper = PipeRpc::ClientWrapper
+
   class MrubySandbox < PipeRpc::Gateway
     class << self
       attr_writer :logger

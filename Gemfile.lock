@@ -1,16 +1,26 @@
+GIT
+  remote: git://github.com/christopheraue/msgpack-ruby.git
+  revision: 88826f11c7026b9cc3a146ecb959c8cf107ae978
+  specs:
+    msgpack (1.0.0)
+
+GIT
+  remote: git://github.com/christopheraue/ruby-world_object.git
+  revision: 10d0a45d4d08897ee58dabb15a725a7934cf7887
+  specs:
+    world_object (0.9)
+      msgpack (~> 1.0)
+
 PATH
   remote: .
   specs:
     mruby_sandbox (0.7.5)
-      pipe_rpc (~> 2.5)
+      world_object (~> 0.9)
 
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.5)
-    msgpack (1.0.0)
-    pipe_rpc (2.5.0)
-      msgpack (~> 1.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -37,9 +47,11 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.8)
   mruby_sandbox!
+  msgpack!
   rspec (~> 3.4)
   rspec-its
   rspec-mocks-matchers-send_message (~> 0.2)
+  world_object!
 
 BUNDLED WITH
    1.12.0

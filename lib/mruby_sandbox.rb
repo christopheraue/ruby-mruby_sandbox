@@ -1,22 +1,10 @@
-require 'pipe_rpc'
-require 'logger'
+require 'world_object'
 
 require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
-  Server = PipeRpc::Server
-  SubjectServer = PipeRpc::SubjectServer
-  Client = PipeRpc::Client
-  ClientWrapper = PipeRpc::ClientWrapper
-
-  class MrubySandbox < PipeRpc::Gateway
-    class << self
-      attr_writer :logger
-
-      def logger
-        @logger ||= Logger.new(STDOUT)
-      end
-    end
+  class Sandbox < WorldObject::Gate
+    world_class 'RUBY'
 
     def initialize
       input, w = IO.pipe
@@ -24,27 +12,20 @@ module MrubySandbox
       @pid = spawn(executable, in: r, out: w)
       r.close; w.close
 
-      self.class.logger.debug "Sandbox(#{__id__}) created with process #{@pid}"
-
       super(input: input, output: output)
+      self.ruby_symbol_ext_type = 3
 
     rescue Errno::ENOENT => e
       STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
       fail e
     end
 
-    def eval(*args)
-      clients[:default].eval(*args)
+    def inject(*args)
+      peer.inject(*args)
     end
 
-    def start_logging
-      on_sent do |message|
-        self.class.logger.debug "Sandbox(#{__id__}) sent: #{message}"
-      end
-
-      on_received do |message|
-        self.class.logger.debug "Sandbox(#{__id__}) received: #{message}"
-      end
+    def eval(*args)
+      peer.eval(*args)
     end
 
     def close(*)
@@ -52,17 +33,14 @@ module MrubySandbox
       super
       Process.kill 9, @pid
       Process.wait @pid
-      self.class.logger.debug "Sandbox(#{__id__}) teared down and process #{@pid} killed"
       @pid = nil
     end
 
     def inspect
-      "#<#{self.class}##{__id__} @pid=#{@pid}>"
+      "#<#{self.class}##{__id__} @sandbox_pid=#{@pid}>"
     end
 
-    private
-
-    def executable
+    private def executable
       current_dir = File.expand_path(File.dirname(__FILE__))
       File.join(current_dir, '../bin/mruby_sandbox')
     end

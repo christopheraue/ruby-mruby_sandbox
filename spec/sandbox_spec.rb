@@ -1,6 +1,6 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox::MrubySandbox.new }
-  #before { sandbox.start_logging }
+  subject(:sandbox) { MrubySandbox::Sandbox.new.tap(&:handle_message) }
+  before { MrubySandbox::Sandbox.start_logging }
   after{ sandbox.close }
 
   it "can eval code" do
@@ -8,13 +8,13 @@ describe "The sandbox" do
   end
 
   it "reports back low level errors like SyntaxError" do
-    expect{ sandbox.eval('cass Test; end') }.to raise_error(PipeRpc::InternalError, /syntax error/)
+    expect{ sandbox.eval('cass Test; end') }.to raise_error(WorldObject::InternalError, /syntax error/)
   end
 
   it "can be closed" do
     expect{ sandbox.eval('2') }.to be 2
     sandbox.close('reason')
-    expect{ sandbox.eval('2') }.to raise_error(PipeRpc::ClosedError, 'reason')
+    expect{ sandbox.eval('2') }.to raise_error(WorldObject::ClosedError, 'reason')
   end
 
   it "preserves standard types coming from inside the sandbox" do
@@ -30,31 +30,31 @@ describe "The sandbox" do
   end
 
   it "preserves standard types coming from outside the sandbox" do
-    class Preserve < MrubySandbox::Server
-      def nil; nil end
-      def false; false end
-      def true; true end
-      def int; 1 end
-      def float; 1.2 end
-      def string; 'string' end
-      def symbol; :symbol end
-      def non_existent_symbol; :__non_existent_symbol__ end
-      def array; [:item1, :item2] end
-      def hash; { key: :value } end
-    end
-    sandbox.servers.add(preserve: Preserve.new)
+    class Preserve
+      WorldObject.register_servable self
 
-    expect(sandbox.eval 'client_for(:preserve).nil == nil').to be true
-    expect(sandbox.eval 'client_for(:preserve).false == false').to be true
-    expect(sandbox.eval 'client_for(:preserve).true == true').to be true
-    expect(sandbox.eval 'client_for(:preserve).int == 1').to be true
-    expect(sandbox.eval 'client_for(:preserve).float == 1.2').to be true
-    expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
-    expect(sandbox.eval 'client_for(:preserve).string == "string"').to be true
-    expect(sandbox.eval 'client_for(:preserve).non_existent_symbol').to be :__non_existent_symbol__
-    expect(sandbox.eval 'client_for(:preserve).symbol == :symbol').to be true
-    expect(sandbox.eval 'client_for(:preserve).array == [:item1, :item2]').to be true
-    expect(sandbox.eval 'client_for(:preserve).hash == { key: :value }').to be true
+      world_public def nil; nil end
+      world_public def false; false end
+      world_public def true; true end
+      world_public def int; 1 end
+      world_public def float; 1.2 end
+      world_public def string; 'string' end
+      world_public def symbol; :symbol end
+      world_public def array; [:item1, :item2] end
+      world_public def hash; { key: :value } end
+    end
+
+    sandbox.inject Preserve.new, as: :preserve
+
+    expect(sandbox.eval 'preserve.nil == nil').to be true
+    expect(sandbox.eval 'preserve.false == false').to be true
+    expect(sandbox.eval 'preserve.true == true').to be true
+    expect(sandbox.eval 'preserve.int == 1').to be true
+    expect(sandbox.eval 'preserve.float == 1.2').to be true
+    expect(sandbox.eval 'preserve.string == "string"').to be true
+    expect(sandbox.eval 'preserve.symbol == :symbol').to be true
+    expect(sandbox.eval 'preserve.array == [:item1, :item2]').to be true
+    expect(sandbox.eval 'preserve.hash == { key: :value }').to be true
   end
 
   it "converts objects of custom types to strings" do
@@ -62,46 +62,29 @@ describe "The sandbox" do
   end
 
   describe "The environment the code is eval'd in" do
-    it "does not have access to some constants" do
-      expect{ sandbox.eval('::Sandbox')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
-      expect{ sandbox.eval('Sandbox')       }.to raise_error(PipeRpc::InternalError, 'uninitialized constant Sandbox')
-      expect{ sandbox.eval('::IO')          }.to raise_error(PipeRpc::InternalError, 'uninitialized constant IO')
-      expect{ sandbox.eval('::PipeRpc')     }.to raise_error(PipeRpc::InternalError, 'uninitialized constant PipeRpc')
-    end
-
-    it "can access some Pipe Rpc constants" do
-      expect(sandbox.eval 'Server').to eq "PipeRpc::Server"
-      expect(sandbox.eval 'SubjectServer').to eq "PipeRpc::SubjectServer"
-      expect(sandbox.eval 'Client').to eq "PipeRpc::Client"
-      expect(sandbox.eval 'ClientWrapper').to eq "PipeRpc::ClientWrapper"
-    end
-
     it "cannot eval code in the context of a server" do
-      class Safe < MrubySandbox::Server
-        def initialize
-          @inside = 'abc'
-        end
-      end
+      stub_const('Safe', Module.new)
+      WorldObject.register_servable Safe
 
-      sandbox.servers.add(safe: Safe.new)
+      sandbox.inject Safe, as: 'Kernel#safe'
 
-      expect{ sandbox.eval 'client_for(:safe).eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `eval' for safe")
+      expect{ sandbox.eval 'safe.eval', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.eval")
 
-      expect{ sandbox.eval 'client_for(:safe).instance_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `instance_eval' for safe")
-      expect{ sandbox.eval 'client_for(:safe).instance_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `instance_exec' for safe")
+      expect{ sandbox.eval 'safe.instance_eval', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.instance_eval")
+      expect{ sandbox.eval 'safe.instance_exec', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.instance_exec")
 
-      expect{ sandbox.eval 'client_for(:safe).class_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `class_eval' for safe")
-      expect{ sandbox.eval 'client_for(:safe).class_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `class_exec' for safe")
+      expect{ sandbox.eval 'safe.class_eval', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.class_eval")
+      expect{ sandbox.eval 'safe.class_exec', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.class_exec")
 
-      expect{ sandbox.eval 'client_for(:safe).module_eval', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `module_eval' for safe")
-      expect{ sandbox.eval 'client_for(:safe).module_exec', __FILE__, __LINE__ }.to raise_error(
-        PipeRpc::InternalError, "undefined method `module_exec' for safe")
+      expect{ sandbox.eval 'safe.module_eval', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.module_eval")
+      expect{ sandbox.eval 'safe.module_exec', __FILE__, __LINE__ }.to raise_error(
+        WorldObject::InternalError, "error inside MRUBY.eval: undefined method Safe.module_exec")
     end
 
     it 'can be send code in multiple calls' do
@@ -121,69 +104,82 @@ describe "The sandbox" do
         end
       CODE
 
-      expect(sandbox.eval('Mod')).to end_with 'Mod'
-      expect(sandbox.eval('Klass')).to end_with 'Klass'
+      expect(sandbox.eval('Mod')).to eq 'Mod:Module'
+      expect(sandbox.eval('Klass')).to eq 'Klass:Class'
       expect(sandbox.eval('Klass.new.meth')).to eq 'klass meth'
       expect(sandbox.eval('meth')).to eq 'result'
     end
 
     it "can create a server for requests" do
       client = sandbox.eval(<<-CODE, __FILE__, __LINE__)
-        class Calc < Server
-          def multiply(a, b)
+        class Calc
+          WorldObject.register_servable self
+
+          world_public def multiply(a, b)
             a * b
           end
         end
-        @calc = Calc.new
+
+        Calc.new
       CODE
 
       expect(client.multiply(5, 9)).to be 45
-      expect{ client.multiply('a', 'b') }.to raise_error(PipeRpc::InternalError)
-      expect{ client.multiply(3) }.to raise_error(PipeRpc::ArgumentError)
-      expect{ client.exp }.to raise_error(PipeRpc::NoMethodError)
+      expect{ client.exp }.to raise_error(WorldObject::NoMethodError)
+      expect{ client.multiply(3) }.to raise_error(WorldObject::ArgumentError)
+      expect{ client.multiply('a', 'b') }.to raise_error(WorldObject::InternalError)
     end
 
-    it "can summon a client to talk to a server" do
-      class Calc < MrubySandbox::Server
-        def exp(a, b)
-          a ** b
-        end
-      end
-      calc = Calc.new
-      sandbox.servers.add(math: calc)
+    it "can summon a client to talk to a server", :focus do
+      stub_const('Calc', Module.new.class_eval do
+        WorldObject.register_servable self
 
-      expect(sandbox.eval 'client_for(:math)').to be calc
-      expect(sandbox.eval 'client_for(:math).exp(2,8)').to be 256
-      expect{ sandbox.eval 'client_for(:math).exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::ReflectedError, "undefined method `**' for nil:NilClass")
-      expect{ sandbox.eval 'client_for(:math).exp', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::InternalError, "wrong number of arguments (given 0, expected 2)")
-      expect{ sandbox.eval 'client_for(:math).add', __FILE__, __LINE__ }.to raise_error(
-          PipeRpc::InternalError, "undefined method `add' for math")
+        class << self
+          world_public def exp(a, b)
+            a ** b
+          end
+        end
+
+        self
+      end)
+
+      sandbox.eval "module Calcu; end"
+
+      sandbox.inject Calc, as: 'Calcu.lator'
+
+      expect(sandbox.eval 'Calcu.lator').to be Calc
+      expect(sandbox.eval 'Calcu.lator.exp(2,8)').to be 256
+      expect{ sandbox.eval 'Calcu.lator.exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
+          WorldObject::ReflectedError, "error inside MRUBY.eval: error inside Calc.exp: undefined method `**' for nil:NilClass")
+      expect{ sandbox.eval 'Calcu.lator.exp', __FILE__, __LINE__ }.to raise_error(
+          WorldObject::InternalError, "error inside MRUBY.eval: invalid arguments for Calc.exp: wrong number of arguments (given 0, expected 2)")
+      expect{ sandbox.eval 'Calcu.lator.add', __FILE__, __LINE__ }.to raise_error(
+          WorldObject::InternalError, "error inside MRUBY.eval: undefined method Calc.add")
     end
 
-    it "can call a server method outside the sandbox while handling a request" do
-      sandbox.eval(<<-CODE)
-        class Calc
-          def initialize
-            @math = client_for(:math)
-          end
+    it "can evaluate a roundtrip using client wrapper and subject server" do
+      stub_const('Calc', Class.new.class_eval do
+        WorldObject.register_servable self
 
-          def square(a)
-            @math.multiply(a, a)
-          end
-        end
-        add_server(math: Calc.new)
-      CODE
-
-      class Calc < MrubySandbox::Server
-        def multiply(a, b)
+        world_public def multiply(a, b)
           a * b
         end
-      end
-      sandbox.servers.add(math: Calc.new)
 
-      expect(sandbox.clients[:math].square(5)).to be 25
+        self
+      end)
+
+      sandbox.eval(<<-CODE)
+        class Calc
+          WorldObject.register_servable self
+          Sandbox.register_client_wrapper self
+
+          world_public def square(a)
+            multiply(a, a)
+          end
+        end
+      CODE
+
+      client = sandbox.inject Calc.new
+      expect(client.square(5)).to be 25
     end
   end
 end

@@ -1,39 +1,29 @@
-class Sandbox < PipeRpc::Gateway
-  def initialize(main)
-    input = IO.new(0, 'r')  #STDIN
-    output = IO.new(1, 'w') #STDOUT
-    super(input: input, output: output)
+class Sandbox < WorldObject::Gate
+  world_class 'MRUBY'
 
-    servers.add(default: main)
+  def initialize(toplevel_binding)
+    super input: IO.new(0, 'r'), output: IO.new(1, 'w')
+    @toplevel_binding = toplevel_binding
+    self.ruby_symbol_ext_type = 3
+  end
 
-    sandbox = self
-
-    Object.define_method :add_server do |*args|
-      sandbox.servers.add(*args)
-    end
-
-    Object.define_method :client_for do |server|
-      sandbox.clients[server]
+  world_public def inject(client, opts = {})
+    if opts[:as]
+      config = opts[:as].to_s
+      define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
+      config = "Kernel##{config}" unless config.include? '#'
+      owner, name = config.split('#')
+      Object.const_get(owner).__send__(define_method, name) { client }
+    else
+      client
     end
   end
 
-  def run
-    loop do
-      handle_message # blocks every iteration
-    end
+  world_public def eval(code, file = '', lineno = 0)
+    @toplevel_binding.eval(code, nil, file, lineno)
   end
 end
 
-def eval(code, file = '', lineno = 0)
-  super(code, nil, file, lineno)
+Sandbox.new(self).tap do |sandbox|
+  loop{ sandbox.handle_message } # blocks every iteration
 end
-
-Server = PipeRpc::Server
-SubjectServer = PipeRpc::SubjectServer
-Client = PipeRpc::Client
-ClientWrapper = PipeRpc::ClientWrapper
-
-# Remove constants from global namespace code should not directly interact with
-Sandbox::IO = Object.remove_const(:IO)
-Sandbox::PipeRpc = Object.remove_const(:PipeRpc)
-Object.remove_const(:Sandbox).new(self).run

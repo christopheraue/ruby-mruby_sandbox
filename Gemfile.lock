@@ -14,7 +14,7 @@ GIT
 PATH
   remote: .
   specs:
-    mruby_sandbox (0.7.5)
+    mruby_sandbox (0.9)
       world_object (~> 0.9)
 
 GEM

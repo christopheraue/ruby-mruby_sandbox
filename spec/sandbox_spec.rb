@@ -130,7 +130,8 @@ describe "The sandbox" do
     end
 
     it "can summon a client to talk to a server", :focus do
-      stub_const('Calc', Module.new.class_eval do
+      stub_const('Calc', Module.new)
+      Calc.class_eval do
         WorldObject.register_servable self
 
         class << self
@@ -138,9 +139,7 @@ describe "The sandbox" do
             a ** b
           end
         end
-
-        self
-      end)
+      end
 
       sandbox.eval "module Calcu; end"
 
@@ -157,15 +156,14 @@ describe "The sandbox" do
     end
 
     it "can evaluate a roundtrip using client wrapper and subject server" do
-      stub_const('Calc', Class.new.class_eval do
+      stub_const('Calc', Class.new)
+      Calc.class_eval do
         WorldObject.register_servable self
 
         world_public def multiply(a, b)
           a * b
         end
-
-        self
-      end)
+      end
 
       sandbox.eval(<<-CODE)
         class Calc

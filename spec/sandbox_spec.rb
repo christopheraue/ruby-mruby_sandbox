@@ -14,7 +14,7 @@ describe "The sandbox" do
   it "can be closed" do
     expect{ sandbox.eval('2') }.to be 2
     sandbox.close('reason')
-    expect{ sandbox.eval('2') }.to raise_error(WorldObject::ClosedError, 'reason')
+    expect{ sandbox.eval('2') }.to raise_error(WorldObject::GateClosedError, 'reason')
   end
 
   it "preserves standard types coming from inside the sandbox" do

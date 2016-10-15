@@ -2,7 +2,7 @@ class Sandbox < WorldObject::Gate
   world_class 'MRUBY'
 
   def initialize(toplevel_binding)
-    super input: IO.new(0, 'r'), output: IO.new(1, 'w')
+    super nil, input: IO.new(0, 'r'), output: IO.new(1, 'w')
     @toplevel_binding = toplevel_binding
     self.ruby_symbol_ext_type = 3
   end

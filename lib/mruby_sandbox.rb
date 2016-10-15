@@ -6,13 +6,13 @@ module MrubySandbox
   class Sandbox < WorldObject::Gate
     world_class 'RUBY'
 
-    def initialize
+    def initialize(id = nil)
       input, w = IO.pipe
       r, output  = IO.pipe
       @pid = spawn(executable, in: r, out: w)
       r.close; w.close
 
-      super(input: input, output: output)
+      super (id || "pid#{@pid}"), input: input, output: output
       self.ruby_symbol_ext_type = 3
 
     rescue Errno::ENOENT => e
@@ -34,10 +34,6 @@ module MrubySandbox
       Process.kill 9, @pid
       Process.wait @pid
       @pid = nil
-    end
-
-    def inspect
-      "#<#{self.class}##{__id__} @sandbox_pid=#{@pid}>"
     end
 
     private def executable

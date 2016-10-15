@@ -1,6 +1,6 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox::Sandbox.new.tap(&:handle_message) }
-  before { MrubySandbox::Sandbox.start_logging }
+  subject(:sandbox) { MrubySandbox::Sandbox.new }
+  before { sandbox.start_logging }
   after{ sandbox.close }
 
   it "can eval code" do
@@ -15,6 +15,10 @@ describe "The sandbox" do
     expect{ sandbox.eval('2') }.to be 2
     sandbox.close('reason')
     expect{ sandbox.eval('2') }.to raise_error(WorldObject::GateClosedError, 'reason')
+  end
+
+  it "exposes the correct methods" do
+    expect{ sandbox.methods.to contain_exactly(:eval, :inject, :methods, :respond_to?) }
   end
 
   it "preserves standard types coming from inside the sandbox" do

@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: git://github.com/christopheraue/ruby-world_object.git
-  revision: 423a10730145b59acf579ff4b1a4afc5b440e348
+  revision: f1e3535eed771a87bd9b75ea3ea2667f0b8fb69c
   specs:
     world_object (0.9)
       msgpack (~> 1.0)

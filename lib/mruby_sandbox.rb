@@ -14,7 +14,6 @@ module MrubySandbox
 
       super (id || "pid#{@pid}"), input: input, output: output
       self.ruby_symbol_ext_type = 3
-      handle_message # to get peer
 
     rescue Errno::ENOENT => e
       STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."

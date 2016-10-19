@@ -1,5 +1,5 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox::Sandbox.new }
+  subject(:sandbox) { MrubySandbox::Sandbox.new.tap(&:open) }
   #before { sandbox.start_logging }
   after{ sandbox.close }
 
@@ -45,7 +45,7 @@ describe "The sandbox" do
       world_public def string; 'string' end
       world_public def symbol; :symbol end
       world_public def array; [:item1, :item2] end
-      world_public def hash; { key: :value } end
+      world_public def hash_obj; { key: :value } end
     end
 
     sandbox.inject Preserve.new, as: :preserve
@@ -58,7 +58,7 @@ describe "The sandbox" do
     expect(sandbox.eval 'preserve.string == "string"').to be true
     expect(sandbox.eval 'preserve.symbol == :symbol').to be true
     expect(sandbox.eval 'preserve.array == [:item1, :item2]').to be true
-    expect(sandbox.eval 'preserve.hash == { key: :value }').to be true
+    expect(sandbox.eval 'preserve.hash_obj == { key: :value }').to be true
   end
 
   it "converts objects of custom types to strings" do
@@ -108,8 +108,8 @@ describe "The sandbox" do
         end
       CODE
 
-      expect(sandbox.eval('Mod')).to eq 'Mod:Module'
-      expect(sandbox.eval('Klass')).to eq 'Klass:Class'
+      expect(sandbox.eval('Mod')).to eq 'Mod'
+      expect(sandbox.eval('Klass')).to eq 'Klass'
       expect(sandbox.eval('Klass.new.meth')).to eq 'klass meth'
       expect(sandbox.eval('meth')).to eq 'result'
     end
@@ -133,7 +133,7 @@ describe "The sandbox" do
       expect{ client.multiply('a', 'b') }.to raise_error(WorldObject::InternalError)
     end
 
-    it "can summon a client to talk to a server", :focus do
+    it "can summon a client to talk to a server" do
       stub_const('Calc', Module.new)
       Calc.class_eval do
         WorldObject.register_servable self

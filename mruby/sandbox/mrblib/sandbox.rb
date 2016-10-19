@@ -25,5 +25,6 @@ class Sandbox < WorldObject::Gate
 end
 
 Sandbox.new(self).tap do |sandbox|
+  sandbox.open
   loop{ sandbox.handle_message } # blocks every iteration
 end

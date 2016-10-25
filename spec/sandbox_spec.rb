@@ -152,7 +152,7 @@ describe "The sandbox" do
       expect(sandbox.eval 'Calcu.lator').to be Calc
       expect(sandbox.eval 'Calcu.lator.exp(2,8)').to be 256
       expect{ sandbox.eval 'Calcu.lator.exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
-          WorldObject::ReflectedError, "error inside MRUBY.eval: error inside Calc.exp: undefined method `**' for nil:NilClass")
+          WorldObject::InternalError, "error inside MRUBY.eval: error inside Calc.exp: undefined method `**' for nil:NilClass")
       expect{ sandbox.eval 'Calcu.lator.exp', __FILE__, __LINE__ }.to raise_error(
           WorldObject::InternalError, "error inside MRUBY.eval: invalid arguments for Calc.exp: wrong number of arguments (given 0, expected 2)")
       expect{ sandbox.eval 'Calcu.lator.add', __FILE__, __LINE__ }.to raise_error(

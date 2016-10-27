@@ -25,7 +25,6 @@ module MrubySandbox
     end
 
     def close(*)
-      return unless @pid
       super
       Process.kill 9, @pid
       Process.wait @pid

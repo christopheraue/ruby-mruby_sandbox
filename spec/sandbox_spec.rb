@@ -1,7 +1,7 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new.tap(&:open) }
   #before { sandbox.start_logging }
-  after{ sandbox.close }
+  after{ sandbox.close if sandbox.open? }
 
   it "can eval code" do
     expect(sandbox.eval('5+8')).to be 13

@@ -6,18 +6,14 @@ module MrubySandbox
   class Sandbox < WorldObject::Gate
     world_class 'RUBY'
 
-    def initialize(id = nil)
-      input, w = IO.pipe
-      r, output  = IO.pipe
-      @pid = spawn(executable, in: r, out: w)
-      r.close; w.close
+    def open
+      input, mrb_output = IO.pipe
+      mrb_input, output  = IO.pipe
+      @pid = spawn(executable, in: mrb_input, out: mrb_output)
+      mrb_input.close; mrb_output.close
 
-      super (id || "pid#{@pid}"), input: input, output: output
+      super input: input, output: output
       self.ruby_symbol_ext_type = 3
-
-    rescue Errno::ENOENT => e
-      STDERR.puts "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
-      fail e
     end
 
     def inject(*args)
@@ -37,8 +33,14 @@ module MrubySandbox
     end
 
     private def executable
-      current_dir = File.expand_path(File.dirname(__FILE__))
-      File.join(current_dir, '../bin/mruby_sandbox')
+      path = File.join File.dirname(__FILE__), '..', 'bin', 'mruby_sandbox'
+      if File.exists? path
+        path
+      else
+        raise Error, "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
+      end
     end
   end
+
+  class Error < StandardError; end
 end

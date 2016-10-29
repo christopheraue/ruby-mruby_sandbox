@@ -21,9 +21,9 @@ module MrubySandbox
       peer.inject(*args)
     end
 
-    def eval(*args)
+    def evaluate(*args)
       open unless open?
-      peer.eval(*args)
+      peer.evaluate(*args)
     end
 
     def close(*)

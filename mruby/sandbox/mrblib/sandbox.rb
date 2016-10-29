@@ -23,7 +23,7 @@ class Sandbox < WorldObject::Gate
     end
   end
 
-  world_public def eval(code, file = '', lineno = 0)
+  world_public def evaluate(code, file = '', lineno = 0)
     @toplevel_binding.eval(code, nil, file, lineno)
   end
 end

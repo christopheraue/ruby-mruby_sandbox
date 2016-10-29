@@ -17,10 +17,12 @@ module MrubySandbox
     end
 
     def inject(*args)
+      open unless open?
       peer.inject(*args)
     end
 
     def eval(*args)
+      open unless open?
       peer.eval(*args)
     end
 

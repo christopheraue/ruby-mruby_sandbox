@@ -1,5 +1,5 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox::Sandbox.new.tap(&:open) }
+  subject(:sandbox) { MrubySandbox::Sandbox.new }
   #before { sandbox.start_logging }
   after{ sandbox.close if sandbox.open? }
 
@@ -11,10 +11,24 @@ describe "The sandbox" do
     expect{ sandbox.eval('cass Test; end') }.to raise_error(WorldObject::InternalError, /syntax error/)
   end
 
-  it "can be closed" do
+  it "reopens itself after being closed when sending a request directly to the gate" do
     expect{ sandbox.eval('2') }.to be 2
     sandbox.close('reason')
-    expect{ sandbox.eval('2') }.to raise_error(WorldObject::GateClosedError, 'reason')
+    expect{ sandbox.eval('2') }.to be 2
+  end
+
+  it "does not reopen itself after being closed when sending a request to a server" do
+    client = sandbox.eval <<-CODE
+      class Klass
+        WorldObject.register_servable self
+        world_public def one; 1 end
+      end
+      Klass.new
+    CODE
+
+    expect{ client.one }.to be 1
+    sandbox.close('reason')
+    expect{ client.one }.to raise_error(WorldObject::GateClosedError, 'reason')
   end
 
   it "exposes the correct methods" do

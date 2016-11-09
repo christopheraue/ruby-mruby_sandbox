@@ -6,6 +6,10 @@ module MrubySandbox
   class Sandbox < WorldObject::Gate
     world_class 'RUBY'
 
+    def id
+      "#{super}(#{@pid ? "pid#{@pid}" : __id__})"
+    end
+
     def open
       input, mrb_output = IO.pipe
       mrb_input, output  = IO.pipe

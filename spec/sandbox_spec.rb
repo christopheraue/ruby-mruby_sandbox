@@ -1,6 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
-  #before { sandbox.start_logging }
+  # before { sandbox.interaction_logger.start }
   after{ sandbox.close if sandbox.open? }
 
   it "can eval code" do
@@ -164,7 +164,7 @@ describe "The sandbox" do
       sandbox.inject Calc, as: 'Calcu.lator'
 
       expect(sandbox.evaluate 'Calcu.lator').to be Calc
-      expect(sandbox.evaluate 'Calcu.lator.exp(2,8)').to be 256
+      expect(sandbox.evaluate 'Calcu.lator.exp(2, 8)').to be 256
       expect{ sandbox.evaluate 'Calcu.lator.exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
           WorldObject::InternalError, "error inside MRUBY.evaluate: error inside Calc.exp: undefined method `**' for nil:NilClass")
       expect{ sandbox.evaluate 'Calcu.lator.exp', __FILE__, __LINE__ }.to raise_error(

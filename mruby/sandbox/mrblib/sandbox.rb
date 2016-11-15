@@ -6,8 +6,8 @@ class Sandbox < WorldObject::Gate
     @toplevel_binding = toplevel_binding
   end
 
-  def open
-    super input: IO.new(0, 'r'), output: IO.new(1, 'w')
+  def open(*)
+    super
     self.ruby_symbol_ext_type = 3
   end
 
@@ -29,6 +29,6 @@ class Sandbox < WorldObject::Gate
 end
 
 Sandbox.new(self).tap do |sandbox|
-  sandbox.open
-  loop{ sandbox.handle_message } # blocks every iteration
+  sandbox.open input: IO.new(0, 'r'), output: IO.new(1, 'w')
+  sandbox.serve # blocks every iteration
 end

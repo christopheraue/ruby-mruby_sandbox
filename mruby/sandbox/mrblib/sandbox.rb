@@ -30,5 +30,5 @@ end
 
 Sandbox.new(self).tap do |sandbox|
   sandbox.open input: IO.new(0, 'r'), output: IO.new(1, 'w')
-  sandbox.serve # blocks every iteration
+  sandbox.loop.start # blocks every iteration
 end

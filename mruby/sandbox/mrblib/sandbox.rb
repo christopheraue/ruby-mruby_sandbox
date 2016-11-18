@@ -7,8 +7,8 @@ class Sandbox < WorldObject::Gate
   end
 
   def open(*)
-    super
     self.ruby_symbol_ext_type = 3
+    super
   end
 
   world_public def inject(client, opts = {})
@@ -29,6 +29,5 @@ class Sandbox < WorldObject::Gate
 end
 
 Sandbox.new(self).tap do |sandbox|
-  sandbox.open input: IO.new(0, 'r'), output: IO.new(1, 'w')
-  sandbox.loop.start # blocks every iteration
+  sandbox.open(input: IO.new(0, 'r'), output: IO.new(1, 'w')).listen
 end

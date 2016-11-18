@@ -64,15 +64,33 @@ describe "The sandbox" do
 
     sandbox.inject Preserve.new, as: :preserve
 
-    expect(sandbox.evaluate 'preserve.nil == nil').to be true
-    expect(sandbox.evaluate 'preserve.false == false').to be true
-    expect(sandbox.evaluate 'preserve.true == true').to be true
-    expect(sandbox.evaluate 'preserve.int == 1').to be true
-    expect(sandbox.evaluate 'preserve.float == 1.2').to be true
-    expect(sandbox.evaluate 'preserve.string == "string"').to be true
-    expect(sandbox.evaluate 'preserve.symbol == :symbol').to be true
-    expect(sandbox.evaluate 'preserve.array == [:item1, :item2]').to be true
-    expect(sandbox.evaluate 'preserve.hash_obj == { key: :value }').to be true
+    client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
+      class Servable
+        WorldObject.register_servable self
+
+        world_public def nil; preserve.nil end
+        world_public def false; preserve.false end
+        world_public def true; preserve.true end
+        world_public def int; preserve.int end
+        world_public def float; preserve.float end
+        world_public def string; preserve.string end
+        world_public def symbol; preserve.symbol end
+        world_public def array; preserve.array end
+        world_public def hash_obj; preserve.hash_obj end
+      end
+
+      Servable.new
+    CODE
+
+    expect(client.nil).to be nil
+    expect(client.false).to be false
+    expect(client.true).to be true
+    expect(client.int).to be 1
+    expect(client.float).to be 1.2
+    expect(client.string).to eq 'string'
+    expect(client.symbol).to be :symbol
+    expect(client.array).to eq [:item1, :item2]
+    expect(client.hash_obj).to eq(key: :value)
   end
 
   it "converts objects of custom types to strings" do
@@ -84,25 +102,43 @@ describe "The sandbox" do
       stub_const('Safe', Module.new)
       WorldObject.register_servable Safe
 
-      sandbox.inject Safe, as: 'Kernel#safe'
+      sandbox.inject Safe, as: 'Object#safe'
 
-      expect{ sandbox.evaluate 'safe.eval', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.eval")
+      client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
+        module Servable
+          WorldObject.register_servable self
+        end
 
-      expect{ sandbox.evaluate 'safe.instance_eval', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.instance_eval")
-      expect{ sandbox.evaluate 'safe.instance_exec', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.instance_exec")
+        class << Servable
+          world_public def eval; safe.eval end
+          world_public def instance_eval; safe.instance_eval end
+          world_public def instance_exec; safe.instance_exec end
+          world_public def class_eval; safe.class_eval end
+          world_public def class_exec; safe.class_exec end
+          world_public def module_eval; safe.module_eval end
+          world_public def module_exec; safe.module_exec end
+        end
 
-      expect{ sandbox.evaluate 'safe.class_eval', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.class_eval")
-      expect{ sandbox.evaluate 'safe.class_exec', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.class_exec")
+        Servable
+      CODE
 
-      expect{ sandbox.evaluate 'safe.module_eval', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.module_eval")
-      expect{ sandbox.evaluate 'safe.module_exec', __FILE__, __LINE__ }.to raise_error(
-        WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Safe.module_exec")
+      expect{ client.eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.eval: undefined method Safe.eval")
+
+      expect{ client.instance_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.instance_eval: undefined method Safe.instance_eval")
+      expect{ client.instance_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.instance_exec: undefined method Safe.instance_exec")
+
+      expect{ client.class_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.class_eval: undefined method Safe.class_eval")
+      expect{ client.class_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.class_exec: undefined method Safe.class_exec")
+
+      expect{ client.module_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.module_eval: undefined method Safe.module_eval")
+      expect{ client.module_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.module_exec: undefined method Safe.module_exec")
     end
 
     it 'can be send code in multiple calls' do
@@ -129,7 +165,7 @@ describe "The sandbox" do
     end
 
     it "can create a server for requests" do
-      client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__)
+      client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
         class Calc
           WorldObject.register_servable self
 
@@ -159,18 +195,36 @@ describe "The sandbox" do
         end
       end
 
-      sandbox.evaluate "module Calcu; end"
+      calcu = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
+        module Calcu
+          WorldObject.register_servable self
+        end
+
+        class << Calcu
+          world_public def pow(*args)
+            lator.exp(*args)
+          end
+
+          world_public def plus(*args)
+            lator.add(*args)
+          end
+
+          world_public :lator
+        end
+
+        Calcu
+      CODE
 
       sandbox.inject Calc, as: 'Calcu.lator'
 
-      expect(sandbox.evaluate 'Calcu.lator').to be Calc
-      expect(sandbox.evaluate 'Calcu.lator.exp(2, 8)').to be 256
-      expect{ sandbox.evaluate 'Calcu.lator.exp(nil,:b)', __FILE__, __LINE__ }.to raise_error(
-          WorldObject::InternalError, "error inside MRUBY.evaluate: error inside Calc.exp: undefined method `**' for nil:NilClass")
-      expect{ sandbox.evaluate 'Calcu.lator.exp', __FILE__, __LINE__ }.to raise_error(
-          WorldObject::InternalError, "error inside MRUBY.evaluate: invalid arguments for Calc.exp: wrong number of arguments (given 0, expected 2)")
-      expect{ sandbox.evaluate 'Calcu.lator.add', __FILE__, __LINE__ }.to raise_error(
-          WorldObject::InternalError, "error inside MRUBY.evaluate: undefined method Calc.add")
+      expect(calcu.lator).to be Calc
+      expect(calcu.pow(2, 8)).to be 256
+      expect{ calcu.pow(nil,:b) }.to raise_error(
+          WorldObject::InternalError, "error inside Calcu.pow: error inside Calc.exp: undefined method `**' for nil:NilClass")
+      expect{ calcu.pow }.to raise_error(
+          WorldObject::InternalError, "error inside Calcu.pow: invalid arguments for Calc.exp: wrong number of arguments (given 0, expected 2)")
+      expect{ calcu.plus }.to raise_error(
+          WorldObject::InternalError, "error inside Calcu.plus: undefined method Calc.add")
     end
 
     it "can evaluate a roundtrip using client wrapper and subject server" do

@@ -6,6 +6,11 @@ module MrubySandbox
   class Sandbox < WorldObject::Gate
     world_class 'RUBY'
 
+    def initialize
+      super
+      @keeper.message_pack.symbol_ext_type = 3
+    end
+
     def id
       "#{super}(#{@pid ? "pid#{@pid}" : __id__})"
     end
@@ -17,7 +22,6 @@ module MrubySandbox
       mrb_input.close; mrb_output.close
 
       super input: input, output: output
-      self.ruby_symbol_ext_type = 3
     end
 
     def inject(*args)

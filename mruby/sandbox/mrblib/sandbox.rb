@@ -3,8 +3,12 @@ class Sandbox < WorldObject::Gate
 
   def initialize(toplevel_binding)
     super nil
-    @keeper.message_pack.symbol_ext_type = 3
     @toplevel_binding = toplevel_binding
+  end
+
+  def open(*)
+    @keeper.message_pack.symbol_ext_type = 3
+    super
   end
 
   world_public def inject(client, opts = {})

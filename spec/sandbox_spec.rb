@@ -1,7 +1,7 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
   # before { sandbox.interaction_logger.start }
-  after{ sandbox.close if sandbox.open? }
+  after{ sandbox.close('end of spec') if sandbox.open? }
 
   it "can eval code" do
     expect(sandbox.evaluate('5+8')).to be 13
@@ -9,12 +9,6 @@ describe "The sandbox" do
 
   it "reports back low level errors like SyntaxError" do
     expect{ sandbox.evaluate('cass Test; end') }.to raise_error(WorldObject::InternalError, /syntax error/)
-  end
-
-  it "reopens itself after being closed when sending a request directly to the gate" do
-    expect{ sandbox.evaluate('2') }.to be 2
-    sandbox.close('reason')
-    expect{ sandbox.evaluate('2') }.to be 2
   end
 
   it "does not reopen itself after being closed when sending a request to a server" do

@@ -1,14 +1,8 @@
-GIT
-  remote: git://github.com/christopheraue/msgpack-ruby.git
-  revision: 88826f11c7026b9cc3a146ecb959c8cf107ae978
-  specs:
-    msgpack (1.0.0)
-
-GIT
-  remote: git://github.com/christopheraue/ruby-world_object.git
-  revision: 6592b610883780f29b49533d747f5314fa4575cd
+PATH
+  remote: ../ruby-world_object
   specs:
     world_object (0.9)
+      fibered_event_loop (~> 1.0)
       msgpack (~> 1.0)
 
 PATH
@@ -21,11 +15,13 @@ GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.5)
+    fibered_event_loop (1.0.0)
+    msgpack (1.0.2)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
       rspec-mocks (~> 3.5.0)
-    rspec-core (3.5.3)
+    rspec-core (3.5.4)
       rspec-support (~> 3.5.0)
     rspec-expectations (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
@@ -47,7 +43,6 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.8)
   mruby_sandbox!
-  msgpack!
   rspec (~> 3.4)
   rspec-its
   rspec-mocks-matchers-send_message (~> 0.2)

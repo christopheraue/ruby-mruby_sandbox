@@ -29,5 +29,6 @@ class Sandbox < WorldObject::Gate
 end
 
 Sandbox.new(self).tap do |sandbox|
-  sandbox.open(input: IO.new(0, 'r'), output: IO.new(1, 'w')).listen
+  sandbox.open(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
+  sandbox.event_loop.start
 end

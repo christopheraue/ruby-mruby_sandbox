@@ -46,4 +46,7 @@ MRuby::GemBox.new do |conf|
 
   # Use eval module
   conf.gem :core => "mruby-eval"
+
+  # Use fiber module
+  conf.gem :core => "mruby-fiber"
 end

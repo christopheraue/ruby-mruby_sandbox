@@ -47,6 +47,6 @@ MRuby::GemBox.new do |conf|
   # Use eval module
   conf.gem :core => "mruby-eval"
 
-  # Use fiber module
-  conf.gem :core => "mruby-fiber"
+  # Use enumerator module
+  conf.gem :core => "mruby-enumerator"
 end

@@ -11,6 +11,18 @@ class Sandbox < WorldObject::Gate
     super
   end
 
+  def log(severity, message)
+    IO.new(2, 'w').puts "#{severity} #{message}"
+  end
+
+  world_public def start_logging
+    interaction_logger.start
+  end
+
+  world_public def stop_logging
+    interaction_logger.stop
+  end
+
   world_public def inject(client, opts = {})
     if opts[:as]
       config = opts[:as].to_s

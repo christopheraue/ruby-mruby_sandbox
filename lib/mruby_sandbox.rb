@@ -16,9 +16,9 @@ module MrubySandbox
       @pid = spawn(executable, in: mrb_input, out: mrb_output)
       mrb_input.close; mrb_output.close
 
-      @keeper.message_pack.symbol_ext_type = 3
+      super WorldObject::PairSocket.new(input: input, output: output)
 
-      super input: input, output: output
+      @keeper.peer.message_pack.symbol_ext_type = 3
     end
 
     def inject(*args)

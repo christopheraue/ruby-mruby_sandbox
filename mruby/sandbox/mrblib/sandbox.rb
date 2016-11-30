@@ -7,8 +7,8 @@ class Sandbox < WorldObject::Gate
   end
 
   def open(*)
-    @keeper.message_pack.symbol_ext_type = 3
     super
+    @keeper.peer.message_pack.symbol_ext_type = 3
   end
 
   def log(severity, message)
@@ -48,6 +48,6 @@ def eval(*args)
 end
 
 Sandbox.new(self).tap do |sandbox|
-  sandbox.open(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
+  sandbox.open WorldObject::PairSocket.new(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
   sandbox.event_loop.start
 end

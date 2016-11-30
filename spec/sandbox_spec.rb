@@ -24,7 +24,7 @@ describe "The sandbox" do
 
     expect{ client.one }.to be 1
     sandbox.close('reason')
-    expect{ client.one }.to raise_error(WorldObject::GateClosedError, 'reason')
+    expect{ client.one }.to raise_error(WorldObject::PeerGoneError, 'reason')
   end
 
   it "exposes the correct methods" do

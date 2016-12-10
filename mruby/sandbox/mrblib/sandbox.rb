@@ -1,26 +1,25 @@
-class Sandbox < WorldObject::Gate
-  world_class 'MRUBY'
-
-  def initialize(toplevel_binding)
-    super nil
+class Sandbox < WorldObject::Connection
+  def initialize(socket, toplevel_binding)
+    super socket
     @toplevel_binding = toplevel_binding
   end
 
-  def open(*)
-    super
-    @keeper.peer.message_pack.symbol_ext_type = 3
-  end
+  attr_reader :toplevel_binding
 
   def log(severity, message)
     IO.new(2, 'w').puts "#{severity} #{message}"
   end
+end
+
+class Sandbox::Interface < WorldObject::Connection::Interface
+  world_class 'MrubySandbox'
 
   world_public def start_logging
-    interaction_logger.start
+    @connection.logger.start
   end
 
   world_public def stop_logging
-    interaction_logger.stop
+    @connection.logger.stop
   end
 
   world_public def inject(client, opts = {})
@@ -36,7 +35,7 @@ class Sandbox < WorldObject::Gate
   end
 
   world_public def evaluate(code, file = '', lineno = 0)
-    @toplevel_binding.eval(code, nil, file, lineno)
+    @connection.toplevel_binding.eval(code, nil, file, lineno)
   end
 end
 
@@ -47,7 +46,6 @@ def eval(*args)
   super
 end
 
-Sandbox.new(self).tap do |sandbox|
-  sandbox.open WorldObject::PairSocket.new(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
-  sandbox.event_loop.start
-end
+socket = WorldObject::StreamSocket.new(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
+sandbox = Sandbox.new(socket, self)
+sandbox.event_loop.start

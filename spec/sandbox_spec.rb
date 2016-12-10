@@ -1,9 +1,8 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
-  # before { sandbox.interaction_logger.start }
-  # before { sandbox.open }
+  # before { sandbox.logger.start }
   # before { sandbox.peer.start_logging }
-  after{ sandbox.close('end of spec') if sandbox.open? }
+  after{ sandbox.close('end of spec') unless sandbox.closed? }
 
   it "can eval code" do
     expect(sandbox.evaluate('5+8')).to be 13
@@ -24,7 +23,7 @@ describe "The sandbox" do
 
     expect{ client.one }.to be 1
     sandbox.close('reason')
-    expect{ client.one }.to raise_error(WorldObject::PeerGoneError, 'reason')
+    expect{ client.one }.to raise_error(WorldObject::ConnectionClosedError, 'reason')
   end
 
   it "exposes the correct methods" do

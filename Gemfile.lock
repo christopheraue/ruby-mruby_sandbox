@@ -2,6 +2,7 @@ PATH
   remote: ../ruby-world_object
   specs:
     world_object (0.9)
+      callbacks_attachable (~> 1.1)
       fibered_event_loop (~> 1.0)
       msgpack (~> 1.0)
 
@@ -14,8 +15,9 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    callbacks_attachable (1.1.0)
     diff-lcs (1.2.5)
-    fibered_event_loop (1.0.0)
+    fibered_event_loop (1.0.1)
     msgpack (1.0.2)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)

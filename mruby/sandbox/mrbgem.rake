@@ -8,5 +8,6 @@ MRuby::Gem::Specification.new('mruby-sandbox') do |spec|
   spec.authors     = ['Christopher Aue']
 
   spec.add_dependency 'mruby-world_object', '~> 0.9', github: 'christopheraue/m-ruby-world_object'
+  spec.add_dependency 'mruby-io', github: 'christopheraue/mruby-io' # snapshot of iij/mruby_io for a controlled version
   spec.add_dependency 'mruby-onig-regexp', '>= 0', github: 'mattn/mruby-onig-regexp'
 end

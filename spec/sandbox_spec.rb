@@ -8,6 +8,23 @@ describe "The sandbox" do
     expect(sandbox.evaluate('5+8')).to be 13
   end
 
+  it "has only limited access to IO functionality" do
+    expect{ sandbox.evaluate('File') }.to raise_error(WorldObject::InternalError, include('uninitialized constant File'))
+    expect{ sandbox.evaluate('FileTest') }.to raise_error(WorldObject::InternalError, include('uninitialized constant FileTest'))
+
+    expect(sandbox.evaluate('IO.methods(false)')).to contain_exactly *%i(_sysclose for_fd select
+      _pipe pipe open new inherited initialize superclass)
+
+    expect(sandbox.evaluate('IO.instance_methods(false)')).to contain_exactly *%i(initialize
+      _check_readable isatty sync sync= sysread sysseek syswrite close close_on_exec= close_on_exec?
+      closed? fileno flush write << eof? eof pos tell pos= rewind seek _read_buf ungetc read
+      readline gets readchar getc each each_byte each_line each_char readlines puts print printf
+      to_i tty? binmode)
+
+    expect(sandbox.evaluate('Kernel.methods(false)')).not_to include :`
+    expect(sandbox.evaluate('Kernel.instance_methods(false)')).not_to include *%i(print puts printf gets getc open)
+  end
+
   it "reports back low level errors like SyntaxError" do
     expect{ sandbox.evaluate('cass Test; end') }.to raise_error(WorldObject::InternalError, /syntax error/)
   end

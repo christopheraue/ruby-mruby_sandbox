@@ -1,11 +1,4 @@
 class Sandbox < WorldObject::Connection
-  def initialize(socket, toplevel_binding)
-    super socket
-    @toplevel_binding = toplevel_binding
-  end
-
-  attr_reader :toplevel_binding
-
   def log(severity, message)
     IO.new(2, 'w').puts "#{severity} #{message}"
   end
@@ -35,9 +28,11 @@ class Sandbox::Interface < WorldObject::Connection::Interface
   end
 
   world_public def evaluate(code, file = '', lineno = 0)
-    @connection.toplevel_binding.eval(code, nil, file, lineno)
+    TOPLEVEL_BINDING.eval(code, nil, file, lineno)
   end
 end
+
+TOPLEVEL_BINDING = self
 
 # This is a tautology but otherwise constants defined during evaluation of
 # the given string in Sandbox#evaluate are not defined under the root namespace
@@ -46,6 +41,6 @@ def eval(*args)
   super
 end
 
-socket = WorldObject::StreamSocket.new(input: IO.new(0, 'r'), output: IO.new(1, 'w'))
-sandbox = Sandbox.new(socket, self)
-sandbox.event_loop.start
+socket = { input: IO.new(0, 'r'), output: IO.new(1, 'w') }
+WorldObject.global.connect_to(socket, wrapped_by: WorldObject::BlockingStreamSocket, as: Sandbox)
+WorldObject.global.serve

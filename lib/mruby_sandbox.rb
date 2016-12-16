@@ -4,13 +4,15 @@ require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
   class Sandbox < WorldObject::Connection
-    def initialize
+    def initialize(id = nil, world_object = WorldObject.global)
       input, mrb_output = IO.pipe
-      mrb_input, output  = IO.pipe
+      mrb_input, output = IO.pipe
       @pid = spawn(executable, in: mrb_input, out: mrb_output)
       mrb_input.close; mrb_output.close
 
-      super WorldObject::StreamSocket.new(input: input, output: output)
+      id = "Sandbox#pid#{@pid}" << (id ? "(#{id})" : '')
+      socket = WorldObject::StreamSocket.new(world_object, input: input, output: output)
+      super world_object, socket, id
 
       welcome
       @message_pack.symbol_ext_type = peer.set_ruby_symbol_ext_type_to 2
@@ -26,7 +28,7 @@ module MrubySandbox
       peer.evaluate(*args)
     end
 
-    def dismiss(*)
+    def close(*)
       super
       Process.kill 9, @pid
       Process.wait @pid
@@ -41,11 +43,6 @@ module MrubySandbox
         raise Error, "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
       end
     end
-  end
-
-  class Sandbox::Interface < WorldObject::Connection::Interface
-    world_class 'MrubySandboxSupervisor'
-    world_instance{ "pid#{@connection.pid}" or __id__ }
   end
 
   class Error < StandardError; end

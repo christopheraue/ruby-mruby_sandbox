@@ -28,7 +28,7 @@ class Sandbox::Interface < WorldObject::Connection::Interface
   end
 
   world_public def evaluate(code, file = '', lineno = 0)
-    TOPLEVEL_BINDING.eval(code, nil, file, lineno)
+    TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
   end
 end
 
@@ -37,10 +37,10 @@ TOPLEVEL_BINDING = self
 # This is a tautology but otherwise constants defined during evaluation of
 # the given string in Sandbox#evaluate are not defined under the root namespace
 # but under Sandbox.
-def eval(*args)
-  super
+def evaluate(*args)
+  eval *args
 end
 
 socket = { input: IO.new(0, 'r'), output: IO.new(1, 'w') }
-WorldObject.global.connect_to(socket, wrapped_by: WorldObject::BlockingStreamSocket, as: Sandbox)
+WorldObject.global.connect_to(socket, as: Sandbox)
 WorldObject.global.serve

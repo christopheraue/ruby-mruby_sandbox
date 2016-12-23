@@ -3,6 +3,7 @@ PATH
   specs:
     io_event_loop (1.0)
       fibered_event_loop (~> 1.2)
+      hitimes (~> 1.2)
 
 PATH
   remote: ../m-ruby-world_object
@@ -24,6 +25,7 @@ GEM
     callbacks_attachable (1.1.1)
     diff-lcs (1.2.5)
     fibered_event_loop (1.2.0)
+    hitimes (1.2.4)
     msgpack (1.0.2)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)

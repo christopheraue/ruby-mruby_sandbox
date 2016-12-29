@@ -14,7 +14,6 @@ module MrubySandbox
       socket = WorldObject::StreamSocket.new(world_object, input: input, output: output)
       super world_object, socket, id
 
-      welcome
       @message_pack.symbol_ext_type = peer.set_ruby_symbol_ext_type_to 2
     end
 

@@ -1,34 +1,34 @@
 class Sandbox < WorldObject::Connection
-  def log(severity, message)
-    IO.new(2, 'w').puts "#{severity} #{message}"
-  end
-end
-
-class Sandbox::Interface < WorldObject::Connection::Interface
-  world_class 'MrubySandbox'
-
-  world_public def start_logging
-    @connection.logger.start
+  def logger
+    @logger ||= ::Logger.new(STDERR)
   end
 
-  world_public def stop_logging
-    @connection.logger.stop
-  end
+  interface do
+    world_class 'MrubySandbox'
 
-  world_public def inject(client, opts = {})
-    if opts[:as]
-      config = opts[:as].to_s
-      define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
-      config = "Kernel##{config}" unless config.include? '#'
-      owner, name = config.split('#')
-      Object.const_get(owner).__send__(define_method, name) { client }
+    world_public def start_logging
+      @connection.interaction_logger.start
     end
 
-    client
-  end
+    world_public def stop_logging
+      @connection.interaction_logger.stop
+    end
 
-  world_public def evaluate(code, file = '', lineno = 0)
-    TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
+    world_public def inject(client, opts = {})
+      if opts[:as]
+        config = opts[:as].to_s
+        define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
+        config = "Kernel##{config}" unless config.include? '#'
+        owner, name = config.split('#')
+        Object.const_get(owner).__send__(define_method, name) { client }
+      end
+
+      client
+    end
+
+    world_public def evaluate(code, file = '', lineno = 0)
+      TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
+    end
   end
 end
 
@@ -41,6 +41,6 @@ def evaluate(*args)
   eval *args
 end
 
-socket = { input: IO.new(0, 'r'), output: IO.new(1, 'w') }
+socket = { input: STDIN, output: STDOUT }
 WorldObject.global.connect_to(socket, as: Sandbox)
 WorldObject.global.serve

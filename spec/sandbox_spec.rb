@@ -1,6 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
-  # before { sandbox.logger.start }
+  # before { sandbox.interaction_logger.start }
   # before { sandbox.peer.start_logging }
   after{ sandbox.close('end of spec') unless sandbox.closed? }
 

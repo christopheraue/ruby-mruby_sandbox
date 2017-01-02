@@ -122,35 +122,35 @@ describe "The sandbox" do
         end
 
         class << Servable
-          world_public def eval; safe.eval end
-          world_public def instance_eval; safe.instance_eval end
-          world_public def instance_exec; safe.instance_exec end
-          world_public def class_eval; safe.class_eval end
-          world_public def class_exec; safe.class_exec end
-          world_public def module_eval; safe.module_eval end
-          world_public def module_exec; safe.module_exec end
+          world_public def test_eval; safe.eval end
+          world_public def test_instance_eval; safe.instance_eval end
+          world_public def test_instance_exec; safe.instance_exec end
+          world_public def test_class_eval; safe.class_eval end
+          world_public def test_class_exec; safe.class_exec end
+          world_public def test_module_eval; safe.module_eval end
+          world_public def test_module_exec; safe.module_exec end
         end
 
         Servable
       CODE
 
-      expect{ client.eval }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.eval: undefined method Safe.eval")
+      expect{ client.test_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_eval: undefined method Safe.eval")
 
-      expect{ client.instance_eval }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.instance_eval: undefined method Safe.instance_eval")
-      expect{ client.instance_exec }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.instance_exec: undefined method Safe.instance_exec")
+      expect{ client.test_instance_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_instance_eval: undefined method Safe.instance_eval")
+      expect{ client.test_instance_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_instance_exec: undefined method Safe.instance_exec")
 
-      expect{ client.class_eval }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.class_eval: undefined method Safe.class_eval")
-      expect{ client.class_exec }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.class_exec: undefined method Safe.class_exec")
+      expect{ client.test_class_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_class_eval: undefined method Safe.class_eval")
+      expect{ client.test_class_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_class_exec: undefined method Safe.class_exec")
 
-      expect{ client.module_eval }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.module_eval: undefined method Safe.module_eval")
-      expect{ client.module_exec }.to raise_error(
-        WorldObject::InternalError, "error inside Servable.module_exec: undefined method Safe.module_exec")
+      expect{ client.test_module_eval }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_module_eval: undefined method Safe.module_eval")
+      expect{ client.test_module_exec }.to raise_error(
+        WorldObject::InternalError, "error inside Servable.test_module_exec: undefined method Safe.module_exec")
     end
 
     it 'can be send code in multiple calls' do

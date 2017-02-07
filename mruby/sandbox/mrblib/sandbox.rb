@@ -3,8 +3,8 @@ class Sandbox < WorldObject::Connection
     @logger ||= ::Logger.new(STDERR)
   end
 
-  interface do
-    world_class 'MrubySandbox'
+  class Interface < WorldObject::Connection::Interface
+    world_class 'MrubySandbox(mruby)'
 
     world_public def start_logging
       @connection.interaction_logger.start

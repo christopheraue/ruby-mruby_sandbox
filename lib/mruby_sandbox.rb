@@ -4,13 +4,17 @@ require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
   class Sandbox < WorldObject::Connection
+    class Interface < WorldObject::Connection::Interface
+      world_class 'MrubySandbox'
+      world_instance{ "pid#{@connection.pid}" }
+    end
+
     def initialize(id = nil, world_object = WorldObject.global)
       input, mrb_output = IO.pipe
       mrb_input, output = IO.pipe
       @pid = spawn(executable, in: mrb_input, out: mrb_output)
       mrb_input.close; mrb_output.close
 
-      id = "Sandbox#pid#{@pid}" << (id ? "(#{id})" : '')
       socket = WorldObject::StreamSocket.new(world_object, input: input, output: output)
       super world_object, socket, id
 

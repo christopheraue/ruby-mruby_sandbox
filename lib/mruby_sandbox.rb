@@ -4,21 +4,25 @@ require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
   class Sandbox < WorldObject::Connection
-    class Interface < WorldObject::Connection::Interface
-      world_class 'MrubySandbox'
-      world_instance{ "pid#{@connection.pid}" }
+    def self.executable
+      @executable ||= begin
+        executable = File.join File.dirname(__FILE__), '..', 'bin', 'mruby_sandbox'
+        unless File.exists? executable
+          raise Error, "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
+        end
+        executable
+      end
     end
 
-    def initialize(id = nil, world_object = WorldObject.global)
-      input, mrb_output = IO.pipe
-      mrb_input, output = IO.pipe
-      @pid = spawn(executable, in: mrb_input, out: mrb_output)
+    def initialize(opts = {})
+      (input, mrb_output), (mrb_input, output) = IO.pipe, IO.pipe
+      @pid = spawn self.class.executable, in: mrb_input, out: mrb_output
       mrb_input.close; mrb_output.close
+      super opts.merge(input: input, output: output)
+    end
 
-      socket = WorldObject::StreamSocket.new(world_object, input: input, output: output)
-      super world_object, socket, id
-
-      @message_pack.symbol_ext_type = peer.set_ruby_symbol_ext_type_to 2
+    on :opened do |sandbox|
+      sandbox.negotiate_symbol_extension
     end
 
     attr_reader :pid
@@ -37,16 +41,12 @@ module MrubySandbox
       Process.wait @pid
       @pid = nil
     end
-
-    private def executable
-      path = File.join File.dirname(__FILE__), '..', 'bin', 'mruby_sandbox'
-      if File.exists? path
-        path
-      else
-        raise Error, "The mruby_sandbox executable is missing. Run `build_mruby_sandbox` first."
-      end
-    end
   end
 
-  class Error < StandardError; end
+  class Sandbox::WorldInterface < WorldObject::Connection::WorldInterface
+    world_class 'MrubySandbox'
+    world_instance{ "pid#{connection.pid}" }
+  end
+
+  class Error < WorldObject::Error; end
 end

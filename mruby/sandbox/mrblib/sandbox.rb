@@ -1,17 +1,13 @@
 class Sandbox < WorldObject::Connection
-  def logger
-    @logger ||= ::Logger.new(STDERR)
-  end
-
-  class Interface < WorldObject::Connection::Interface
+  class WorldInterface < WorldObject::Connection::WorldInterface
     world_class 'MrubySandbox(mruby)'
 
     world_public def start_logging
-      @connection.interaction_logger.start
+      connection.logger.start ::Logger.new(STDERR)
     end
 
     world_public def stop_logging
-      @connection.interaction_logger.stop
+      connection.logger.stop
     end
 
     world_public def inject(client, opts = {})
@@ -41,6 +37,5 @@ def evaluate(*args)
   eval *args
 end
 
-socket = { input: STDIN, output: STDOUT }
-WorldObject.global.connect_to(socket, as: Sandbox)
-WorldObject.global.serve
+Sandbox.new input: STDIN, output: STDOUT
+WorldObject::EventLoop.global.start

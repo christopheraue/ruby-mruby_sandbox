@@ -1,6 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
-  # before { sandbox.interaction_logger.start }
+  # before { sandbox.logger.start }
   # before { sandbox.peer.start_logging }
   after{ sandbox.close('end of spec') unless sandbox.closed? }
 
@@ -32,7 +32,7 @@ describe "The sandbox" do
   it "does not reopen itself after being closed when sending a request to a server" do
     client = sandbox.evaluate <<-CODE
       class Klass
-        WorldObject.register_servable self
+        include WorldObject
         world_public def one; 1 end
       end
       Klass.new
@@ -61,7 +61,7 @@ describe "The sandbox" do
 
   it "preserves standard types coming from outside the sandbox" do
     class Preserve
-      WorldObject.register_servable self
+      include WorldObject
 
       world_public def nil; nil end
       world_public def false; false end
@@ -78,7 +78,7 @@ describe "The sandbox" do
 
     client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
       class Servable
-        WorldObject.register_servable self
+        include WorldObject
 
         world_public def nil; preserve.nil end
         world_public def false; preserve.false end
@@ -111,14 +111,16 @@ describe "The sandbox" do
 
   describe "The environment the code is eval'd in" do
     it "cannot eval code in the context of a server" do
-      stub_const('Safe', Module.new)
-      WorldObject.register_servable Safe
+      stub_const('Safe', Module.new do
+        include WorldObject
+        world_class 'Safe'
+      end)
 
       sandbox.inject Safe, as: 'Object#safe'
 
       client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
         module Servable
-          WorldObject.register_servable self
+          include WorldObject
         end
 
         class << Servable
@@ -179,7 +181,7 @@ describe "The sandbox" do
     it "can create a server for requests" do
       client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
         class Calc
-          WorldObject.register_servable self
+          include WorldObject
 
           world_public def multiply(a, b)
             a * b
@@ -190,26 +192,26 @@ describe "The sandbox" do
       CODE
 
       expect(client.multiply(5, 9)).to be 45
-      expect{ client.exp }.to raise_error(WorldObject::NoMethodError)
+      expect{ client.exp }.to raise_error(WorldObject::MethodError)
       expect{ client.multiply(3) }.to raise_error(WorldObject::ArgumentError)
       expect{ client.multiply('a', 'b') }.to raise_error(WorldObject::InternalError)
     end
 
     it "can summon a client to talk to a server" do
-      stub_const('Calc', Module.new)
-      Calc.class_eval do
-        WorldObject.register_servable self
+      stub_const('Calc', Module.new do
+        include WorldObject
+        world_class 'Calc'
 
         class << self
           world_public def exp(a, b)
             a ** b
           end
         end
-      end
+      end)
 
       calcu = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
         module Calcu
-          WorldObject.register_servable self
+          include WorldObject
         end
 
         class << Calcu
@@ -240,19 +242,19 @@ describe "The sandbox" do
     end
 
     it "can evaluate a roundtrip using client wrapper and subject server" do
-      stub_const('Calc', Class.new)
-      Calc.class_eval do
-        WorldObject.register_servable self
+      stub_const('Calc', Class.new do
+        include WorldObject
+        world_class 'Calc'
 
         world_public def multiply(a, b)
           a * b
         end
-      end
+      end)
 
       sandbox.evaluate(<<-CODE)
         class Calc
-          WorldObject.register_servable self
-          Sandbox.register_client_wrapper self
+          include WorldObject
+          Sandbox.register_remote_wrapper self
 
           world_public def square(a)
             multiply(a, a)

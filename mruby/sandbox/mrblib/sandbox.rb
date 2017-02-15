@@ -14,7 +14,7 @@ class Sandbox < WorldObject::Connection
       if opts[:as]
         config = opts[:as].to_s
         define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
-        config = "Kernel##{config}" unless config.include? '#'
+        config = "Object##{config}" unless config.include? '#'
         owner, name = config.split('#')
         Object.const_get(owner).__send__(define_method, name) { client }
       end

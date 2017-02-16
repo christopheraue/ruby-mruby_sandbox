@@ -15,11 +15,10 @@ def build?
 end
 
 def clone_mruby_into(mruby_dir)
-  system "git clone https://github.com/christopheraue/mruby.git #{mruby_dir}"
+  system "git clone https://github.com/mruby/mruby.git #{mruby_dir}"
 end
 
 def build_mruby(config:, args:)
-  system "git checkout fix-3429-eval"
   system "#{test? ? 'TEST=test' : ''} MRUBY_CONFIG=#{config} ./minirake #{args.join(' ')}"
 end
 

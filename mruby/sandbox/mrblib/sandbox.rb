@@ -23,7 +23,9 @@ class Sandbox < WorldObject::Connection
     end
 
     world_public def evaluate(code, file = '', lineno = 0)
-      TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
+      # The `eval("return(...)")` construct temporarily works around
+      # https://github.com/mruby/mruby/issues/3429
+      TOPLEVEL_BINDING.evaluate("return(\n#{code}\n)", nil, file, lineno)
     end
   end
 end

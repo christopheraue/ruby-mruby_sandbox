@@ -19,7 +19,6 @@ def clone_mruby_into(mruby_dir)
 end
 
 def build_mruby(config:, args:)
-  system "git checkout bf4e79cc62af809138bc7db7e54ece67080b5fa8"
   system "#{test? ? 'TEST=test' : ''} MRUBY_CONFIG=#{config} ./minirake #{args.join(' ')}"
 end
 

@@ -23,9 +23,7 @@ class Sandbox < WorldObject::Connection
     end
 
     world_public def evaluate(code, file = '', lineno = 0)
-      # The `eval("return(...)")` construct temporarily works around
-      # https://github.com/mruby/mruby/issues/3429
-      TOPLEVEL_BINDING.evaluate("return(\n#{code}\n)", nil, file, lineno)
+      TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
     end
   end
 end
@@ -34,7 +32,7 @@ TOPLEVEL_BINDING = self
 
 # This is a tautology but otherwise constants defined during evaluation of
 # the given string in Sandbox#evaluate are not defined under the root namespace
-# but under Sandbox.
+# but under Sandbox::WorldInterface.
 def evaluate(*args)
   eval *args
 end

@@ -43,10 +43,5 @@ module MrubySandbox
     end
   end
 
-  class Sandbox::WorldInterface < WorldObject::Connection::WorldInterface
-    world_class 'MrubySandbox'
-    world_instance{ "pid#{connection.pid}" }
-  end
-
   class Error < WorldObject::Error; end
 end

@@ -1,4 +1,6 @@
 class Sandbox < WorldObject::Connection
+  self.world_id = 'InsideMrubySandbox'
+
   class Ambassador
     world_public def start_logging
       connection.logger.start ::Logger.new(STDERR)

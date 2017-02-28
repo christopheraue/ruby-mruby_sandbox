@@ -4,6 +4,8 @@ require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
   class Sandbox < WorldObject::Connection
+    self.world_id = 'mrubySandbox#:pid'
+
     def self.executable
       @executable ||= begin
         executable = File.join File.dirname(__FILE__), '..', 'bin', 'mruby_sandbox'

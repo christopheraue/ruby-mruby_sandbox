@@ -10,16 +10,16 @@ class Sandbox < WorldObject::Connection
       connection.logger.stop
     end
 
-    world_public def inject(client, opts = {})
+    world_public def inject(remote, opts = {})
       if opts[:as]
         config = opts[:as].to_s
         define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
         config = "Object##{config}" unless config.include? '#'
         owner, name = config.split('#')
-        Object.const_get(owner).__send__(define_method, name) { client }
+        Object.const_get(owner).__send__(define_method, name) { remote }
       end
 
-      client
+      remote
     end
 
     world_public def evaluate(code, file = '', lineno = 0)

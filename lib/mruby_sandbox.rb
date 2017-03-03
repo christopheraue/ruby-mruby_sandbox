@@ -4,7 +4,7 @@ require_relative 'mruby_sandbox/version'
 
 module MrubySandbox
   class Sandbox < WorldObject::Connection
-    self.world_id = 'mrubySandbox#:pid'
+    self.world_class = 'mrubySandbox'
 
     def self.executable
       @executable ||= begin

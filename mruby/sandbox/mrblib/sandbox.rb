@@ -1,5 +1,5 @@
 class Sandbox < WorldObject::Connection
-  self.world_id = 'InsideMrubySandbox'
+  self.world_class = 'InsideMrubySandbox'
 
   class Ambassador
     world_public def start_logging

@@ -9,8 +9,8 @@ describe "The sandbox" do
   end
 
   it "has only limited access to IO functionality" do
-    expect{ sandbox.evaluate('File') }.to raise_error(WorldObject::InternalError, include('uninitialized constant File'))
-    expect{ sandbox.evaluate('FileTest') }.to raise_error(WorldObject::InternalError, include('uninitialized constant FileTest'))
+    expect{ sandbox.evaluate('File') }.to raise_error(WorldObject::RemoteError, include('uninitialized constant File'))
+    expect{ sandbox.evaluate('FileTest') }.to raise_error(WorldObject::RemoteError, include('uninitialized constant FileTest'))
 
     expect(sandbox.evaluate('IO.methods(false)')).to contain_exactly *%i(_sysclose for_fd select
       _pipe pipe open new inherited initialize superclass)
@@ -26,11 +26,11 @@ describe "The sandbox" do
   end
 
   it "reports back low level errors like SyntaxError" do
-    expect{ sandbox.evaluate('cass Test; end') }.to raise_error(WorldObject::InternalError, /syntax error/)
+    expect{ sandbox.evaluate('cass Test; end') }.to raise_error(WorldObject::RemoteError, /syntax error/)
   end
 
   it "does not reopen itself after being closed when sending a request to a server" do
-    client = sandbox.evaluate <<-CODE
+    client = sandbox.evaluate <<-CODE.strip_heredoc
       class Klass
         include Sandbox::LocalObject
       end
@@ -83,7 +83,7 @@ describe "The sandbox" do
 
     sandbox.inject Preserve.new, as: :preserve
 
-    client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
+    client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       class Servable
         include Sandbox::LocalObject
       end
@@ -126,7 +126,7 @@ describe "The sandbox" do
 
     sandbox.inject Safe, as: 'Object#safe'
 
-    client = sandbox.evaluate(<<-CODE, __FILE__, __LINE__+1)
+    client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       world_interface = Object.new.extend Sandbox::WorldInterface['Servable']
 
       class << world_interface
@@ -143,21 +143,21 @@ describe "The sandbox" do
     CODE
 
     expect{ client.test_eval }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_eval: undefined method Safe.eval")
+      WorldObject::RemoteError, "Servable.test_eval: Safe.eval: undefined")
 
     expect{ client.test_instance_eval }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_instance_eval: undefined method Safe.instance_eval")
+      WorldObject::RemoteError, "Servable.test_instance_eval: Safe.instance_eval: undefined")
     expect{ client.test_instance_exec }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_instance_exec: undefined method Safe.instance_exec")
+      WorldObject::RemoteError, "Servable.test_instance_exec: Safe.instance_exec: undefined")
 
     expect{ client.test_class_eval }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_class_eval: undefined method Safe.class_eval")
+      WorldObject::RemoteError, "Servable.test_class_eval: Safe.class_eval: undefined")
     expect{ client.test_class_exec }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_class_exec: undefined method Safe.class_exec")
+      WorldObject::RemoteError, "Servable.test_class_exec: Safe.class_exec: undefined")
 
     expect{ client.test_module_eval }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_module_eval: undefined method Safe.module_eval")
+      WorldObject::RemoteError, "Servable.test_module_eval: Safe.module_eval: undefined")
     expect{ client.test_module_exec }.to raise_error(
-      WorldObject::InternalError, "error inside Servable.test_module_exec: undefined method Safe.module_exec")
+      WorldObject::RemoteError, "Servable.test_module_exec: Safe.module_exec: undefined")
   end
 end

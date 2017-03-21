@@ -1,7 +1,6 @@
 describe "The sandbox" do
   subject(:sandbox) { MrubySandbox::Sandbox.new }
-  # before { MrubySandbox::Sandbox.on(:opening) { |sandbox| sandbox.logger.start } }
-  # before { MrubySandbox::Sandbox.on(:opened) { |sandbox| sandbox.peer.start_logging } }
+  # before { MrubySandbox::Sandbox.logger.start }
   after{ sandbox.close('end of spec') unless sandbox.closed? }
 
   it "can eval code" do

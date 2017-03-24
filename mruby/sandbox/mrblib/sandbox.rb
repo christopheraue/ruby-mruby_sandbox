@@ -4,7 +4,7 @@ class Sandbox < WorldObject::Connection
   # logger.logger = ::Logger.new(STDERR)
   # logger.start
 
-  class Ambassador
+  WorldInterface.for_instances 'InsideMrubySandbox' do
     def inject(remote, opts = {})
       if opts[:as]
         config = opts[:as].to_s

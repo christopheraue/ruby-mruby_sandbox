@@ -33,8 +33,7 @@ describe "The sandbox" do
       class Klass
         include Sandbox::LocalObject
       end
-      class Sandbox::Klass
-        include Sandbox::WorldInterface
+      Sandbox::WorldInterface.create_for_instances 'Klass' do
         def one; 1 end
       end
       Klass.new
@@ -66,9 +65,7 @@ describe "The sandbox" do
       include MrubySandbox::Sandbox::LocalObject
     end
 
-    class MrubySandbox::Sandbox::Preserve
-      include MrubySandbox::Sandbox::WorldInterface
-
+    MrubySandbox::Sandbox::WorldInterface.create_for_instances 'Preserve' do
       def nil; nil end
       def false; false end
       def true; true end
@@ -87,9 +84,7 @@ describe "The sandbox" do
         include Sandbox::LocalObject
       end
 
-      class Sandbox::Servable
-        include Sandbox::WorldInterface
-
+      Sandbox::WorldInterface.create_for_instances 'Servable' do
         def nil; preserve.nil end
         def false; preserve.false end
         def true; preserve.true end
@@ -121,14 +116,12 @@ describe "The sandbox" do
 
   it "has no access to eval methods" do
     stub_const('Safe', Module.new.extend(MrubySandbox::Sandbox::LocalObject['Safe']) )
-    stub_const('Sandbox::Safe', Module.new.extend(MrubySandbox::Sandbox::WorldInterface['Safe']))
+    MrubySandbox::Sandbox::WorldInterface.create_for_object('Safe')
 
     sandbox.inject Safe, as: 'Object#safe'
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
-      world_interface = Object.new.extend Sandbox::WorldInterface['Servable']
-
-      class << world_interface
+      Sandbox::WorldInterface.create_for_object 'Servable' do
         def test_eval; safe.eval end
         def test_instance_eval; safe.instance_eval end
         def test_instance_exec; safe.instance_exec end

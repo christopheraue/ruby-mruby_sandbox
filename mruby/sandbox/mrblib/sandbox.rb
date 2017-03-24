@@ -5,7 +5,7 @@ class Sandbox < WorldObject::Connection
   # logger.start
 
   class Ambassador
-    world_public def inject(remote, opts = {})
+    def inject(remote, opts = {})
       if opts[:as]
         config = opts[:as].to_s
         define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
@@ -17,7 +17,7 @@ class Sandbox < WorldObject::Connection
       remote
     end
 
-    world_public def evaluate(code, file = '', lineno = 0)
+    def evaluate(code, file = '', lineno = 0)
       TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
     end
   end

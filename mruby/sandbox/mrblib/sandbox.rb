@@ -4,22 +4,20 @@ class Sandbox < WorldObject::Connection
   # logger.logger = ::Logger.new(STDERR)
   # logger.start
 
-  WorldInterface.for_instances 'InsideMrubySandbox' do
-    def inject(remote, opts = {})
-      if opts[:as]
-        config = opts[:as].to_s
-        define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
-        config = "Object##{config}" unless config.include? '#'
-        owner, name = config.split('#')
-        Object.const_get(owner).__send__(define_method, name) { remote }
-      end
-
-      remote
+  world_public def inject(remote, opts = {})
+    if opts[:as]
+      config = opts[:as].to_s
+      define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
+      config = "Object##{config}" unless config.include? '#'
+      owner, name = config.split('#')
+      Object.const_get(owner).__send__(define_method, name) { remote }
     end
 
-    def evaluate(code, file = '', lineno = 0)
-      TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
-    end
+    remote
+  end
+
+  world_public def evaluate(code, file = '', lineno = 0)
+    TOPLEVEL_BINDING.evaluate(code, nil, file, lineno)
   end
 end
 

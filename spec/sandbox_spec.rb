@@ -32,9 +32,7 @@ describe "The sandbox" do
     client = sandbox.evaluate <<-CODE.strip_heredoc
       class Klass
         include Sandbox::LocalObject
-      end
-      Sandbox::WorldInterface.create_for_instances 'Klass' do
-        def one; 1 end
+        world_public def one; 1 end
       end
       Klass.new
     CODE
@@ -63,18 +61,15 @@ describe "The sandbox" do
   it "preserves standard types coming from outside the sandbox" do
     class Preserve
       include MrubySandbox::Sandbox::LocalObject
-    end
-
-    MrubySandbox::Sandbox::WorldInterface.create_for_instances 'Preserve' do
-      def nil; nil end
-      def false; false end
-      def true; true end
-      def int; 1 end
-      def float; 1.2 end
-      def string; 'string' end
-      def symbol; :symbol end
-      def array; [:item1, :item2] end
-      def hash_obj; { key: :value } end
+      world_public def nil; nil end
+      world_public def false; false end
+      world_public def true; true end
+      world_public def int; 1 end
+      world_public def float; 1.2 end
+      world_public def string; 'string' end
+      world_public def symbol; :symbol end
+      world_public def array; [:item1, :item2] end
+      world_public def hash_obj; { key: :value } end
     end
 
     sandbox.inject Preserve.new, as: :preserve
@@ -82,18 +77,15 @@ describe "The sandbox" do
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       class Servable
         include Sandbox::LocalObject
-      end
-
-      Sandbox::WorldInterface.create_for_instances 'Servable' do
-        def nil; preserve.nil end
-        def false; preserve.false end
-        def true; preserve.true end
-        def int; preserve.int end
-        def float; preserve.float end
-        def string; preserve.string end
-        def symbol; preserve.symbol end
-        def array; preserve.array end
-        def hash_obj; preserve.hash_obj end
+        world_public def nil; preserve.nil end
+        world_public def false; preserve.false end
+        world_public def true; preserve.true end
+        world_public def int; preserve.int end
+        world_public def float; preserve.float end
+        world_public def string; preserve.string end
+        world_public def symbol; preserve.symbol end
+        world_public def array; preserve.array end
+        world_public def hash_obj; preserve.hash_obj end
       end
 
       Servable.new
@@ -115,23 +107,22 @@ describe "The sandbox" do
   end
 
   it "has no access to eval methods" do
-    stub_const('Safe', Module.new.extend(MrubySandbox::Sandbox::LocalObject['Safe']) )
-    MrubySandbox::Sandbox::WorldInterface.create_for_object('Safe')
+    stub_const 'Safe', Module.new.extend(MrubySandbox::Sandbox::LocalObject['Safe'])
 
     sandbox.inject Safe, as: 'Object#safe'
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
-      Sandbox::WorldInterface.create_for_object 'Servable' do
-        def test_eval; safe.eval end
-        def test_instance_eval; safe.instance_eval end
-        def test_instance_exec; safe.instance_exec end
-        def test_class_eval; safe.class_eval end
-        def test_class_exec; safe.class_exec end
-        def test_module_eval; safe.module_eval end
-        def test_module_exec; safe.module_exec end
+      obj = Object.new.extend Sandbox::LocalObject['Servable']
+      class << obj
+        world_public def test_eval; safe.eval end
+        world_public def test_instance_eval; safe.instance_eval end
+        world_public def test_instance_exec; safe.instance_exec end
+        world_public def test_class_eval; safe.class_eval end
+        world_public def test_class_exec; safe.class_exec end
+        world_public def test_module_eval; safe.module_eval end
+        world_public def test_module_exec; safe.module_exec end
       end
-
-      Object.new.extend Sandbox::LocalObject['Servable']
+      obj
     CODE
 
     expect{ client.test_eval }.to raise_error(

@@ -30,5 +30,4 @@ def evaluate(*args)
   eval *args
 end
 
-Sandbox.new input: STDIN, output: STDOUT
-WorldObject::EventLoop.global.start
+Sandbox.open(input: STDIN, output: STDOUT).await_close

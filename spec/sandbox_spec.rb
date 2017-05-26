@@ -1,5 +1,5 @@
 describe "The sandbox" do
-  subject(:sandbox) { MrubySandbox::Sandbox.new }
+  subject(:sandbox) { MrubySandbox::Sandbox.open }
   # before { MrubySandbox::Sandbox.logger.start }
   after{ sandbox.close('end of spec') unless sandbox.closed? }
 

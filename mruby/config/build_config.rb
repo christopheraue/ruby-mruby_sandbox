@@ -13,6 +13,7 @@ MRuby::Build.new do |conf|
   conf.gembox File.join(dir, 'safe-core')
   conf.gem core: 'mruby-bin-mruby'
   conf.gem core: 'mruby-bin-mirb' if ENV['TEST']
+  conf.gem File.join(root_dir, '../../m-ruby-concurrently')
   conf.gem File.join(root_dir, '../../m-ruby-world_object')
   conf.gem sandbox_mrbgem unless ENV['TEST']
 end

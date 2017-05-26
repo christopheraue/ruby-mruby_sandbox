@@ -7,7 +7,7 @@ IO.singleton_class.remove_method :sysopen
 IO.singleton_class.remove_method :read
 IO.remove_method :pid
 
-Kernel.singleton_class.remove_method :`
+Kernel.remove_method :`
 Kernel.remove_method :print
 Kernel.remove_method :puts
 Kernel.remove_method :printf

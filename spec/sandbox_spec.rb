@@ -16,12 +16,11 @@ describe "The sandbox" do
 
     expect(sandbox.evaluate('IO.instance_methods(false)')).to contain_exactly *%i(initialize
       _check_readable isatty sync sync= sysread sysseek syswrite close close_on_exec= close_on_exec?
-      closed? fileno flush write << eof? eof pos tell pos= rewind seek _read_buf ungetc read
+      closed? fileno flush hash write << eof? eof pos tell pos= rewind seek _read_buf ungetc read
       readline gets readchar getc each each_byte each_line each_char readlines puts print printf
       to_i tty? binmode await_readable await_writable read_nonblock write_nonblock)
 
-    expect(sandbox.evaluate('Kernel.methods(false)')).not_to include :`
-    expect(sandbox.evaluate('Kernel.instance_methods(false)')).not_to include *%i(print puts printf gets getc open)
+    expect(sandbox.evaluate('Kernel.instance_methods(false)')).not_to include *%i(` print puts printf gets getc open)
   end
 
   it "reports back low level errors like SyntaxError" do

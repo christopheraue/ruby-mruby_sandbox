@@ -30,7 +30,7 @@ describe "The sandbox" do
   it "does not reopen itself after being closed when sending a request to a server" do
     client = sandbox.evaluate <<-CODE.strip_heredoc
       class Klass
-        include Sandbox::LocalObject
+        include Sandbox::WorldObject
         world_public def one; 1 end
       end
       Klass.new
@@ -59,7 +59,7 @@ describe "The sandbox" do
 
   it "preserves standard types coming from outside the sandbox" do
     class Preserve
-      include MrubySandbox::Sandbox::LocalObject
+      include MrubySandbox::Sandbox::WorldObject
       world_public def nil; nil end
       world_public def false; false end
       world_public def true; true end
@@ -75,7 +75,7 @@ describe "The sandbox" do
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       class Servable
-        include Sandbox::LocalObject
+        include Sandbox::WorldObject
         world_public def nil; preserve.nil end
         world_public def false; preserve.false end
         world_public def true; preserve.true end
@@ -106,12 +106,12 @@ describe "The sandbox" do
   end
 
   it "has no access to eval methods" do
-    stub_const 'Safe', Module.new.extend(MrubySandbox::Sandbox::LocalObject['Safe'])
+    stub_const 'Safe', Module.new.extend(MrubySandbox::Sandbox::WorldObject['Safe'])
 
     sandbox.inject Safe, as: 'Object#safe'
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
-      obj = Object.new.extend Sandbox::LocalObject['Servable']
+      obj = Object.new.extend WorldObject['Servable']
       class << obj
         world_public def test_eval; safe.eval end
         world_public def test_instance_eval; safe.instance_eval end

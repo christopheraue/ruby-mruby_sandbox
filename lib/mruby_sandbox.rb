@@ -23,8 +23,8 @@ module MrubySandbox
       super opts.merge(input: input, output: output)
     end
 
-    on :opened do
-      negotiate_symbol_extension
+    on :negotiation do |ambassador|
+      ambassador.negotiate_ruby_symbol_extension
     end
 
     attr_reader :pid

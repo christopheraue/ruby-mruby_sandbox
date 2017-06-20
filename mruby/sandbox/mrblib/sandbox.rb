@@ -1,7 +1,7 @@
 class Sandbox < WorldObject::Connection
   self.world_class = 'InsideMrubySandbox'
 
-  # logger.logger = ::Logger.new(STDERR)
+  # logger.reopen STDERR
   # logger.start
 
   world_public def inject(remote, opts = {})

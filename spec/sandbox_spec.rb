@@ -19,7 +19,7 @@ describe "The sandbox" do
       closed? fileno flush hash write << eof? eof pos tell pos= rewind seek _read_buf ungetc read
       readline gets readchar getc each each_byte each_line each_char readlines puts print printf
       to_i tty? binmode await_readable await_writable read_nonblock write_nonblock
-      concurrently_read concurrently_write)
+      await_read await_written concurrently_read concurrently_write)
 
     expect(sandbox.evaluate('Kernel.instance_methods(false)')).not_to include *%i(` print puts printf gets getc open)
   end

@@ -1,8 +1,7 @@
 class Sandbox < WorldObject::Connection
   self.world_class = 'InsideMrubySandbox'
 
-  # logger.reopen STDERR
-  # logger.start
+  # self.logger = Logger.new(STDERR)
 
   world_public def inject(remote, opts = {})
     if opts[:as]

@@ -1,9 +1,9 @@
 MRuby::Build.new do |conf|
-  # Gets set by the VS command prompts.
   if ENV['VisualStudioVersion'] || ENV['VSINSTALLDIR']
     toolchain :visualcpp
   else
     toolchain :gcc
+    conf.cc.flags << '-g1' # debug information for stacktraces
   end
 
   dir = File.expand_path(File.dirname(__FILE__))

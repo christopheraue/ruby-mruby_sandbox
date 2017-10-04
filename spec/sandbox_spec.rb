@@ -28,6 +28,27 @@ describe "The sandbox" do
     expect{ sandbox.evaluate('cass Test; end') }.to raise_error(WorldObject::RemoteError, /syntax error/)
   end
 
+  it "includes a backtrace in errors" do
+    eval_line = __LINE__+2
+    def test_eval
+      sandbox.evaluate <<-CODE.strip_heredoc, __FILE__, __LINE__+1
+        def a; raise 'error' end
+        def b; a end
+        def c; b end
+        c
+      CODE
+    end
+
+    expect{ test_eval }.to raise_error do |error|
+      expect(error.backtrace).to start_with(
+        "#{__FILE__}:#{eval_line+1}:in a",
+        "#{__FILE__}:#{eval_line+2}:in b",
+        "#{__FILE__}:#{eval_line+3}:in c",
+        "#{__FILE__}:#{eval_line+4}:in evaluate",
+        "#{__FILE__}:#{eval_line+0}:in `test_eval'")
+    end
+  end
+
   it "does not reopen itself after being closed when sending a request to a server" do
     client = sandbox.evaluate <<-CODE.strip_heredoc
       class Klass

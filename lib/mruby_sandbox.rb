@@ -35,6 +35,9 @@ module MrubySandbox
 
     def evaluate(*args)
       peer.evaluate(*args)
+    rescue Exception => e
+      e.backtrace.delete_at e.backtrace.find_index{ |loc| loc.start_with? __FILE__ }
+      raise e
     end
 
     def close(*)

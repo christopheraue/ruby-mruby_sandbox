@@ -12,7 +12,7 @@ describe "The sandbox" do
     expect{ sandbox.evaluate('FileTest') }.to raise_error(WorldObject::RemoteError, include('uninitialized constant FileTest'))
 
     expect(sandbox.evaluate('IO.methods(false)')).to contain_exactly *%i(_sysclose for_fd select
-      _pipe pipe open new inherited initialize superclass)
+      _pipe pipe open new inherited initialize superclass __original_new__ allocate)
 
     expect(sandbox.evaluate('IO.instance_methods(false)')).to contain_exactly *%i(initialize
       _check_readable isatty sync sync= sysread sysseek syswrite close close_on_exec= close_on_exec?
@@ -147,21 +147,21 @@ describe "The sandbox" do
     CODE
 
     expect{ client.test_eval }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_eval: Safe.eval: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_eval: <Remote>Safe.eval: undefined")
 
     expect{ client.test_instance_eval }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_instance_eval: Safe.instance_eval: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_instance_eval: <Remote>Safe.instance_eval: undefined")
     expect{ client.test_instance_exec }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_instance_exec: Safe.instance_exec: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_instance_exec: <Remote>Safe.instance_exec: undefined")
 
     expect{ client.test_class_eval }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_class_eval: Safe.class_eval: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_class_eval: <Remote>Safe.class_eval: undefined")
     expect{ client.test_class_exec }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_class_exec: Safe.class_exec: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_class_exec: <Remote>Safe.class_exec: undefined")
 
     expect{ client.test_module_eval }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_module_eval: Safe.module_eval: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_module_eval: <Remote>Safe.module_eval: undefined")
     expect{ client.test_module_exec }.to raise_error(
-      WorldObject::RemoteError, "Servable.test_module_exec: Safe.module_exec: undefined")
+      WorldObject::RemoteError, "<Remote>Servable.test_module_exec: <Remote>Safe.module_exec: undefined")
   end
 end

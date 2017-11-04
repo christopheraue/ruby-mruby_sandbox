@@ -3,18 +3,6 @@ class Sandbox < WorldObject::Connection
 
   # self.logger = Logger.new(STDERR)
 
-  world_public def inject(remote, opts = {})
-    if opts[:as]
-      config = opts[:as].to_s
-      define_method = config.sub!('.', '#') ? :define_singleton_method : :define_method
-      config = "Object##{config}" unless config.include? '#'
-      owner, name = config.split('#')
-      Object.const_get(owner).__send__(define_method, name) { remote }
-    end
-
-    remote
-  end
-
   world_public def evaluate(code, file = '', lineno = 0)
     TOPLEVEL_BINDING.__evaluate__(code, nil, file, lineno)
   rescue Exception => e

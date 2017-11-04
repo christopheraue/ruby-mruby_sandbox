@@ -29,10 +29,6 @@ module MrubySandbox
 
     attr_reader :pid
 
-    def inject(*args)
-      peer.inject(*args)
-    end
-
     def evaluate(*args)
       peer.evaluate(*args)
     rescue Exception => e

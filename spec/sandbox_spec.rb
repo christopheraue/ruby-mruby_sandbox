@@ -64,7 +64,7 @@ describe "The sandbox" do
   end
 
   it "exposes the correct methods" do
-    expect{ sandbox.methods.to contain_exactly(:evaluate, :inject, :methods, :respond_to?) }
+    expect{ sandbox.methods.to contain_exactly(:evaluate, :methods, :respond_to?) }
   end
 
   it "preserves standard types coming from inside the sandbox" do
@@ -93,7 +93,15 @@ describe "The sandbox" do
       world_public def hash_obj; { key: :value } end
     end
 
-    sandbox.inject Preserve.new, as: :preserve
+    sandbox.evaluate <<-CODE
+      class Sandbox
+        world_public def inject(world_object)
+          Kernel.define_method(:preserve){ world_object }
+        end
+      end
+    CODE
+
+    sandbox.peer.inject Preserve.new
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       class Servable
@@ -130,7 +138,15 @@ describe "The sandbox" do
   it "has no access to eval methods" do
     stub_const 'Safe', Module.new.extend(MrubySandbox::Sandbox::WorldObject['Safe'])
 
-    sandbox.inject Safe, as: 'Object#safe'
+    sandbox.evaluate <<-CODE
+      class Sandbox
+        world_public def inject(world_object)
+          Kernel.define_method(:safe){ world_object }
+        end
+      end
+    CODE
+
+    sandbox.peer.inject Safe
 
     client = sandbox.evaluate(<<-CODE.strip_heredoc, __FILE__, __LINE__+1)
       obj = Object.new.extend WorldObject['Servable']

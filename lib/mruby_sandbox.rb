@@ -27,6 +27,12 @@ module MrubySandbox
       ambassador.negotiate_ruby_symbol_extension
     end
 
+    on :closed do
+      Process.kill 9, @pid
+      Process.wait @pid
+      @pid = nil
+    end
+
     attr_reader :pid
 
     def evaluate(*args)
@@ -34,13 +40,6 @@ module MrubySandbox
     rescue Exception => e
       e.backtrace.delete_at e.backtrace.find_index{ |loc| loc.start_with? __FILE__ }
       raise e
-    end
-
-    def close(*)
-      super
-      Process.kill 9, @pid
-      Process.wait @pid
-      @pid = nil
     end
   end
 
